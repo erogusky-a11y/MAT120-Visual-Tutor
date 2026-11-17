@@ -1,0 +1,1064 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MTH120 Visual Tutor</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=Bricolage+Grotesque:opsz,wght@12..96,700;12..96,800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#eef1f5; --surface:#ffffff; --sunk:#f6f8fb; --ink:#17202b; --muted:#566273;
+  --line:#d6dce4; --line-strong:#8b97a6;
+  --accent:#1c5bd0; --accent-ink:#ffffff; --accent-soft:#dfe8fb;
+  --qa:#3a73df; --qa-soft:#cddcf8; --qb:#e2a31b; --qb-soft:#f7e3b2; --qab:#6a3db3;
+  --good:#1d7340; --good-bg:#e2f3e8; --warn:#7a5000; --warn-bg:#fdf1d6; --bad:#b0281f; --bad-bg:#fbe6e4;
+  --mark:#ffe27a; --grid:rgba(28,91,208,.07);
+  --display:"Bricolage Grotesque", ui-sans-serif, system-ui, sans-serif;
+  --body:"Atkinson Hyperlegible", ui-sans-serif, system-ui, "Segoe UI", sans-serif;
+  /* Layout: sticky topic rail on the left; one topic at a time on the right: key ideas, graph-paper visual models, then a practice card. */
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#10141a; --surface:#181e26; --sunk:#141a21; --ink:#e7ecf2; --muted:#9ba7b6;
+    --line:#2a333f; --line-strong:#5d6a7a;
+    --accent:#7ea6ff; --accent-ink:#0d1420; --accent-soft:#1f2b40;
+    --qa:#5f8fef; --qa-soft:#253957; --qb:#efbd48; --qb-soft:#4a3d1c; --qab:#a27ce6;
+    --good:#6fd39a; --good-bg:#16301f; --warn:#f0c66b; --warn-bg:#3a2e12; --bad:#ff8f86; --bad-bg:#3a1a18;
+    --mark:#5c4a0c; --grid:rgba(126,166,255,.07);
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#10141a; --surface:#181e26; --sunk:#141a21; --ink:#e7ecf2; --muted:#9ba7b6;
+  --line:#2a333f; --line-strong:#5d6a7a;
+  --accent:#7ea6ff; --accent-ink:#0d1420; --accent-soft:#1f2b40;
+  --qa:#5f8fef; --qa-soft:#253957; --qb:#efbd48; --qb-soft:#4a3d1c; --qab:#a27ce6;
+  --good:#6fd39a; --good-bg:#16301f; --warn:#f0c66b; --warn-bg:#3a2e12; --bad:#ff8f86; --bad-bg:#3a1a18;
+  --mark:#5c4a0c; --grid:rgba(126,166,255,.07);
+  color-scheme: dark;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font:17px/1.55 var(--body)}
+h1,h2,h3{font-family:var(--display);line-height:1.15;text-wrap:balance;margin:0}
+.wrap{max-width:1180px;margin:0 auto;padding:24px 20px 64px;display:grid;grid-template-columns:220px minmax(0,1fr);gap:28px}
+.masthead{grid-column:1/-1;display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:8px 24px;border-bottom:2px solid var(--ink);padding-bottom:14px}
+.masthead h1{font-size:clamp(28px,4vw,40px);font-weight:800;letter-spacing:-.01em}
+.masthead h1 .code{color:var(--accent)}
+.masthead p{margin:0;color:var(--muted);max-width:62ch;font-size:15.5px}
+nav.rail{position:sticky;top:16px;align-self:start;display:flex;flex-direction:column;gap:4px}
+nav.rail a{display:flex;gap:10px;align-items:baseline;padding:10px 12px;border-radius:8px;color:var(--ink);text-decoration:none;font-weight:700}
+nav.rail a .n{font-family:var(--display);color:var(--muted);font-size:14px;min-width:1.1em}
+nav.rail a:hover{background:var(--surface)}
+nav.rail a[aria-current="page"]{background:var(--surface);box-shadow:inset 3px 0 0 var(--accent)}
+nav.rail a[aria-current="page"] .n{color:var(--accent)}
+nav.rail .note{font-size:13px;color:var(--muted);padding:12px;margin:8px 0 0;border-top:1px solid var(--line)}
+main{min-width:0}
+.topic{display:none;flex-direction:column;gap:20px}
+.topic.on{display:flex}
+.topic-head .kicker{margin:0;font-size:13px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--accent)}
+.topic-head h2{font-size:clamp(26px,3.2vw,34px);font-weight:800;margin:2px 0 8px}
+.lede{margin:0;max-width:65ch;color:var(--muted)}
+.ideas{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px;margin:0;padding:0;list-style:none}
+.ideas li{background:var(--sunk);border:1px solid var(--line);border-radius:10px;padding:12px 14px;font-size:15.5px}
+.ideas b{display:block;font-family:var(--display);font-size:16px;margin-bottom:2px}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:18px 20px;display:flex;flex-direction:column;gap:12px;min-width:0}
+.panel h3{font-size:20px;font-weight:700}
+.how{margin:0;color:var(--muted);font-size:15.5px;max-width:70ch}
+.ctrls{display:flex;flex-wrap:wrap;gap:10px 20px;align-items:center}
+.ctrl{display:flex;align-items:center;gap:8px;font-size:15px}
+.ctrl label{font-weight:700}
+.ctrl output{font-weight:700;min-width:1.6em;font-variant-numeric:tabular-nums}
+input[type=number],input[type=text],select{font:inherit;font-size:16px;padding:7px 10px;border:1px solid var(--line-strong);border-radius:8px;background:var(--surface);color:var(--ink)}
+input[type=number]{width:6.5em}
+input.sm{width:4.6em}
+input[type=range]{accent-color:var(--accent);width:170px}
+.viz{background-color:var(--surface);background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);background-size:20px 20px;border:1px solid var(--line);border-radius:10px;padding:14px;overflow-x:auto}
+.viz.row{display:flex;flex-wrap:wrap;gap:16px;align-items:center}
+.fig{display:block;width:100%;height:auto}
+.readout{margin:0;font-size:16px}
+.big{font-size:22px;font-weight:700}
+.btn{font:700 15px var(--body);padding:9px 14px;border-radius:8px;border:1px solid var(--line-strong);background:var(--surface);color:var(--ink);cursor:pointer}
+.btn:hover{background:var(--sunk)}
+.btn-primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.btn-primary:hover{background:var(--accent);filter:brightness(1.08)}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{font:700 14px var(--body);padding:6px 12px;border-radius:999px;border:1px solid var(--line-strong);background:var(--surface);color:var(--ink);cursor:pointer}
+.chip[aria-pressed="true"]{background:var(--accent-soft);border-color:var(--accent)}
+.practice{border-top:4px solid var(--accent)}
+.pr-top{display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:8px}
+.pr-score{margin:0;font-size:14px;color:var(--muted);font-variant-numeric:tabular-nums}
+.pr-prompt{font-size:21px;padding:14px 16px;background:var(--sunk);border-radius:10px;border:1px solid var(--line)}
+.pr-form{display:flex;flex-wrap:wrap;gap:8px}
+.pr-form input{flex:1 1 200px;font-size:18px}
+.pr-fb{margin:0;padding:10px 14px;border-radius:8px;font-weight:700}
+.pr-fb:empty{display:none}
+.pr-fb.good{background:var(--good-bg);color:var(--good)}
+.pr-fb.warn{background:var(--warn-bg);color:var(--warn)}
+.pr-fb.bad{background:var(--bad-bg);color:var(--bad)}
+.pr-actions{display:flex;flex-wrap:wrap;gap:8px}
+.pr-hints{display:flex;flex-direction:column;gap:12px}
+.pr-hints:empty{display:none}
+.steps{margin:0;padding-left:1.4em;display:flex;flex-direction:column;gap:10px}
+.answer{margin:0;font-size:18px}
+.frac{display:inline-flex;flex-direction:column;align-items:center;vertical-align:middle;line-height:1.05;font-size:.92em;margin:0 .12em}
+.frac>span:first-child{border-bottom:2px solid currentColor;padding:0 .25em}
+.frac>span:last-child{padding:0 .25em}
+.mathx{font-variant-numeric:tabular-nums}
+mark{background:var(--mark);color:inherit;border-radius:4px;padding:0 3px}
+.ops{display:flex;flex-direction:column}
+.ops-line{display:grid;grid-template-columns:minmax(0,max-content) 1fr;gap:4px 18px;align-items:center;padding:8px 0;border-bottom:1px dashed var(--line)}
+.ops-line:last-child{border-bottom:0}
+.ops-line .mathx{font-size:21px}
+.ops-note{color:var(--muted);font-size:15px}
+.ops-note .why{color:var(--ink);font-weight:700}
+.ops-line.final .mathx{font-weight:700;color:var(--accent)}
+.pv{border-collapse:collapse;font-variant-numeric:tabular-nums;font-size:21px;margin:0 auto}
+.pv th{font:700 11px var(--body);text-transform:uppercase;letter-spacing:.04em;color:var(--muted);padding:4px 6px;vertical-align:bottom}
+.pv td{text-align:center;padding:4px 8px;min-width:2.1em}
+.pv td.pt,.pv th.pt{min-width:.5em;padding:4px 0;font-weight:700}
+.pv td.pad{color:var(--muted)}
+.pv td.diff{background:var(--mark);border-radius:4px}
+.pv tr.res td{border-top:2px solid var(--ink);font-weight:700}
+.pv td.op{color:var(--muted);min-width:1.2em}
+.eqlog{display:flex;flex-direction:column;gap:4px;margin:0;padding:0;list-style:none}
+.eqlog li{font-size:22px;font-weight:700;color:var(--muted);font-variant-numeric:tabular-nums}
+.eqlog li:last-child{color:var(--ink)}
+.status{margin:0;font-weight:700;color:var(--good)}
+.status:empty{display:none}
+.msg{margin:0;color:var(--bad);font-weight:700}
+.msg:empty{display:none}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.legend{display:flex;flex-wrap:wrap;gap:6px 18px;font-size:14px;color:var(--muted);margin:8px 0 0}
+.sw{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:6px;vertical-align:-1px;border:1px solid var(--line-strong)}
+.cell{stroke:var(--line-strong);stroke-width:1}
+.s-a{fill:var(--qa)} .s-b{fill:var(--qb)} .s-ab{fill:var(--qab)}
+.s-a-soft{fill:var(--qa-soft)} .s-b-soft{fill:var(--qb-soft)} .s-empty{fill:var(--surface)}
+.s-removed{fill:transparent;stroke:var(--bad);stroke-width:1.5;stroke-dasharray:4 3}
+.s-ink{fill:var(--ink)} .s-pan{fill:var(--line-strong)}
+.s-out{fill:none;stroke:var(--ink);stroke-width:2}
+.s-line{stroke:var(--ink);stroke-width:2;fill:none}
+.s-thin{stroke:var(--line-strong);stroke-width:1;fill:none}
+.s-dash{stroke:var(--muted);stroke-width:1.5;stroke-dasharray:4 4;fill:none}
+.s-accring{fill:none;stroke:var(--accent);stroke-width:3}
+.hl-box{fill:var(--accent-soft)}
+.grid-on{stroke:rgba(255,255,255,.5);stroke-width:.8;fill:none}
+.s-fade{opacity:.22}
+.t{fill:var(--ink);font:15px var(--body)}
+.t-b{fill:var(--ink);font:700 15px var(--body)}
+.t-s{fill:var(--muted);font:13px var(--body)}
+.t-acc{fill:var(--accent);font:700 15px var(--body)}
+.t-inv{fill:#fff;font:italic 700 16px var(--body)}
+@media (max-width:820px){
+  .wrap{grid-template-columns:1fr;gap:16px;padding:16px 16px 48px}
+  nav.rail{position:static;flex-direction:row;overflow-x:auto;gap:6px;padding-bottom:4px}
+  nav.rail a{white-space:nowrap;background:var(--surface);border:1px solid var(--line)}
+  nav.rail a[aria-current="page"]{box-shadow:inset 0 -3px 0 var(--accent)}
+  nav.rail .note{display:none}
+  .panel{padding:16px}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="masthead">
+    <h1><span class="code">MTH120</span> Visual Tutor</h1>
+    <p>See each idea as a picture, then practice with step-by-step hints. Topics follow the MTH120 catalog description: whole numbers, decimals, fractions, proportional reasoning and setting up basic equations.</p>
+  </header>
+
+  <nav class="rail" aria-label="Topics">
+    <a href="#whole-numbers"><span class="n">1</span>Whole numbers</a>
+    <a href="#fractions"><span class="n">2</span>Fractions</a>
+    <a href="#decimals"><span class="n">3</span>Decimals</a>
+    <a href="#percents"><span class="n">4</span>Percents</a>
+    <a href="#ratios"><span class="n">5</span>Ratios and rates</a>
+    <a href="#equations"><span class="n">6</span>Equations</a>
+    <p class="note">Practice problems are new every time. Your score resets when you leave or reload the page.</p>
+  </nav>
+
+  <main>
+  <!-- 1 WHOLE NUMBERS -->
+  <section class="topic" id="whole-numbers" aria-labelledby="h-t1">
+    <header class="topic-head">
+      <p class="kicker">Topic 1 · Whole numbers</p>
+      <h2 id="h-t1">Place value, rounding and order of operations</h2>
+      <p class="lede">Every whole number is built from ones, tens, hundreds and thousands. Once you can see those pieces, rounding and multi-step problems get much easier.</p>
+    </header>
+    <ul class="ideas">
+      <li><b>Base ten</b>Each place is worth 10 times the place to its right. The 4 in 2,435 means 4 hundreds, or 400.</li>
+      <li><b>Rounding</b>Find the two round numbers on either side. Halfway or past it rounds up. Before halfway rounds down.</li>
+      <li><b>Order of operations</b>Parentheses, then exponents, then multiply and divide from left to right, then add and subtract from left to right.</li>
+    </ul>
+    <div class="panel">
+      <h3>Place value blocks</h3>
+      <p class="how">Change the number and watch the blocks. A rod is 10 ones, a flat is 10 rods, and a cube is 10 flats.</p>
+      <div class="ctrls">
+        <div class="ctrl"><label for="pv-n">Number</label><input id="pv-n" type="number" min="0" max="9999" value="2435"></div>
+        <div class="ctrl"><input id="pv-r" type="range" min="0" max="9999" value="2435" aria-label="Number, 0 to 9,999"></div>
+      </div>
+      <div class="viz" id="pv-viz"></div>
+      <p class="readout" id="pv-out"></p>
+    </div>
+    <div class="panel">
+      <h3>Rounding on a number line</h3>
+      <p class="how">Pick a number and a place to round to. The dot shows where your number sits between the two closest round numbers.</p>
+      <div class="ctrls">
+        <div class="ctrl"><label for="rd-n">Number</label><input id="rd-n" type="number" min="0" max="99999" value="4368"></div>
+        <div class="ctrl"><label for="rd-p">Round to the nearest</label>
+          <select id="rd-p"><option value="10">ten</option><option value="100" selected>hundred</option><option value="1000">thousand</option></select></div>
+      </div>
+      <p class="msg" id="rd-msg"></p>
+      <div class="viz" id="rd-viz"></div>
+      <p class="readout" id="rd-out"></p>
+    </div>
+    <div class="panel">
+      <h3>Order of operations, one step at a time</h3>
+      <p class="how">Press Next step. The highlighted part is what gets done next, and the note says why.</p>
+      <div class="ctrls">
+        <button class="btn btn-primary" id="ops-next" type="button">Next step</button>
+        <button class="btn" id="ops-all" type="button">Show all steps</button>
+        <button class="btn" id="ops-new" type="button">New expression</button>
+      </div>
+      <div class="viz"><div class="ops" id="ops-box"></div></div>
+    </div>
+    <div class="panel practice" id="pr-whole"></div>
+  </section>
+
+  <!-- 2 FRACTIONS -->
+  <section class="topic" id="fractions" aria-labelledby="h-t2">
+    <header class="topic-head">
+      <p class="kicker">Topic 2 · Fractions</p>
+      <h2 id="h-t2">Equal parts of a whole</h2>
+      <p class="lede">A fraction names equal parts. The bottom number (denominator) says how many equal parts the whole is cut into. The top number (numerator) says how many of those parts you have.</p>
+    </header>
+    <ul class="ideas">
+      <li><b>Equivalent fractions</b>Multiply or divide the top and bottom by the same number. The amount stays the same; only the size of the pieces changes.</li>
+      <li><b>Adding and subtracting</b>The pieces must be the same size first, so rewrite both fractions with a common denominator.</li>
+      <li><b>Multiplying</b>Multiply the tops, then multiply the bottoms. Simplify at the end.</li>
+    </ul>
+    <div class="panel">
+      <h3>Build a fraction</h3>
+      <p class="how">Move the sliders. Try a top number bigger than the bottom to see an improper fraction and its mixed number.</p>
+      <div class="ctrls">
+        <div class="ctrl"><label for="fb-n">Top (numerator)</label><input id="fb-n" type="range" min="0" max="12" value="3"><output id="fb-n-o" for="fb-n">3</output></div>
+        <div class="ctrl"><label for="fb-d">Bottom (denominator)</label><input id="fb-d" type="range" min="1" max="12" value="4"><output id="fb-d-o" for="fb-d">4</output></div>
+      </div>
+      <div class="viz" id="fb-viz"></div>
+      <p class="readout" id="fb-out"></p>
+    </div>
+    <div class="panel">
+      <h3>Equivalent fractions</h3>
+      <p class="how">Cut every piece into smaller equal pieces. The shaded amount never changes, so the fractions are equal.</p>
+      <div class="ctrls">
+        <div class="ctrl"><label for="eq-b">Bottom</label><select id="eq-b"><option>2</option><option selected>3</option><option>4</option><option>5</option><option>6</option></select></div>
+        <div class="ctrl"><label for="eq-a">Top</label><input id="eq-a" type="range" min="1" max="3" value="2"><output id="eq-a-o" for="eq-a">2</output></div>
+        <div class="ctrl"><label for="eq-k">Cut each piece into</label><input id="eq-k" type="range" min="1" max="5" value="2"><output id="eq-k-o" for="eq-k">2</output></div>
+      </div>
+      <div class="viz" id="eq-viz"></div>
+      <p class="readout" id="eq-out"></p>
+    </div>
+    <div class="panel">
+      <h3>Adding and subtracting with different denominators</h3>
+      <p class="how">Type two fractions. The picture re-cuts both into same-size pieces so they can be combined.</p>
+      <div class="ctrls">
+        <div class="ctrl"><label class="sr" for="ad-a">First top</label><input id="ad-a" class="sm" type="number" min="0" max="12" value="2"><span>/</span><label class="sr" for="ad-b">First bottom</label><input id="ad-b" class="sm" type="number" min="1" max="12" value="3"></div>
+        <div class="ctrl"><label class="sr" for="ad-op">Operation</label><select id="ad-op"><option value="+">+</option><option value="−">−</option></select></div>
+        <div class="ctrl"><label class="sr" for="ad-c">Second top</label><input id="ad-c" class="sm" type="number" min="0" max="12" value="1"><span>/</span><label class="sr" for="ad-d">Second bottom</label><input id="ad-d" class="sm" type="number" min="1" max="12" value="4"></div>
+      </div>
+      <p class="msg" id="ad-msg"></p>
+      <div class="viz" id="ad-viz"></div>
+      <p class="readout" id="ad-out"></p>
+    </div>
+    <div class="panel practice" id="pr-frac"></div>
+  </section>
+
+  <!-- 3 DECIMALS -->
+  <section class="topic" id="decimals" aria-labelledby="h-t3">
+    <header class="topic-head">
+      <p class="kicker">Topic 3 · Decimals</p>
+      <h2 id="h-t3">Place value to the right of the point</h2>
+      <p class="lede">Decimals keep the base-ten pattern going past the ones place: tenths, hundredths, thousandths. Each place is one tenth of the place to its left.</p>
+    </header>
+    <ul class="ideas">
+      <li><b>Reading decimals</b>0.37 means 37 hundredths, the same as the fraction 37/100.</li>
+      <li><b>Comparing</b>Line up the decimal points and compare from the left. More digits does not mean a bigger number.</li>
+      <li><b>Adding and subtracting</b>Line up the decimal points, fill empty places with zeros, then work like whole numbers.</li>
+    </ul>
+    <div class="panel">
+      <h3>The hundredths grid</h3>
+      <p class="how">The whole square is 1. Each column is one tenth and each small square is one hundredth.</p>
+      <div class="ctrls">
+        <div class="ctrl"><label for="hg-k">Hundredths shaded</label><input id="hg-k" type="range" min="0" max="100" value="37"><output id="hg-k-o" for="hg-k">37</output></div>
+      </div>
+      <div class="viz row" id="hg-viz"></div>
+      <p class="readout" id="hg-out"></p>
+    </div>
+    <div class="panel">
+      <h3>Compare two decimals by place value</h3>
+      <p class="how">Type two decimals. Empty places get gray zeros, and the first place that differs is highlighted.</p>
+      <div class="ctrls">
+        <div class="ctrl"><label for="cd-a">First</label><input id="cd-a" type="text" inputmode="decimal" value="0.5" class="sm"></div>
+        <div class="ctrl"><label for="cd-b">Second</label><input id="cd-b" type="text" inputmode="decimal" value="0.45" class="sm"></div>
+      </div>
+      <p class="msg" id="cd-msg"></p>
+      <div class="viz" id="cd-viz"></div>
+      <p class="readout" id="cd-out"></p>
+    </div>
+    <div class="panel practice" id="pr-dec"></div>
+  </section>
+
+  <!-- 4 PERCENTS -->
+  <section class="topic" id="percents" aria-labelledby="h-t4">
+    <header class="topic-head">
+      <p class="kicker">Topic 4 · Percents</p>
+      <h2 id="h-t4">Percent means “per hundred”</h2>
+      <p class="lede">35% means 35 out of every 100. That is the fraction 35/100 and the decimal 0.35, three names for the same amount.</p>
+    </header>
+    <ul class="ideas">
+      <li><b>Percent of a number</b>Change the percent to a decimal, then multiply. 20% of 80 is 0.20 × 80 = 16.</li>
+      <li><b>Benchmarks</b>50% is half. 25% is a quarter. 10% moves the decimal point one place left.</li>
+      <li><b>Finding the percent</b>Divide the part by the whole, then multiply by 100.</li>
+    </ul>
+    <div class="panel">
+      <h3>Percent bar</h3>
+      <p class="how">The top bar runs from 0% to 100%. The line underneath runs from 0 to the whole amount. The same point on both shows the part.</p>
+      <div class="ctrls">
+        <div class="ctrl"><label for="pc-p">Percent</label><input id="pc-p" type="range" min="0" max="100" value="35"><output id="pc-p-o" for="pc-p">35%</output></div>
+        <div class="ctrl"><label for="pc-w">Whole</label><input id="pc-w" type="range" min="10" max="500" step="10" value="80"><output id="pc-w-o" for="pc-w">80</output></div>
+      </div>
+      <div class="chips" role="group" aria-label="Benchmark percents">
+        <button type="button" class="chip" data-p="10">10%</button><button type="button" class="chip" data-p="25">25%</button><button type="button" class="chip" data-p="50">50%</button><button type="button" class="chip" data-p="75">75%</button><button type="button" class="chip" data-p="100">100%</button>
+      </div>
+      <div class="viz" id="pc-viz"></div>
+      <div class="viz row" id="pc-grid"></div>
+      <p class="readout" id="pc-out"></p>
+    </div>
+    <div class="panel practice" id="pr-pct"></div>
+  </section>
+
+  <!-- 5 RATIOS -->
+  <section class="topic" id="ratios" aria-labelledby="h-t5">
+    <header class="topic-head">
+      <p class="kicker">Topic 5 · Proportional reasoning</p>
+      <h2 id="h-t5">Ratios, rates and proportions</h2>
+      <p class="lede">A ratio compares two amounts, like 2 cups of red paint for every 3 cups of blue (2:3). A rate compares different units, like 150 miles in 3 hours.</p>
+    </header>
+    <ul class="ideas">
+      <li><b>Unit rate</b>How much for one. 150 miles in 3 hours is 150 ÷ 3 = 50 miles per hour.</li>
+      <li><b>Proportion</b>Two equal ratios, like 3/4 = 15/20. Whatever you multiply the bottom by, multiply the top by the same number.</li>
+      <li><b>Sharing in a ratio</b>Add the parts of the ratio to get the number of equal boxes, then divide the total by that number.</li>
+    </ul>
+    <div class="panel">
+      <h3>Tape diagram for a ratio</h3>
+      <p class="how">Every box holds the same amount. Change the ratio and the amount in each box.</p>
+      <div class="ctrls">
+        <div class="ctrl"><label for="tp-a">Red boxes</label><input id="tp-a" type="range" min="1" max="6" value="2"><output id="tp-a-o" for="tp-a">2</output></div>
+        <div class="ctrl"><label for="tp-b">Blue boxes</label><input id="tp-b" type="range" min="1" max="6" value="3"><output id="tp-b-o" for="tp-b">3</output></div>
+        <div class="ctrl"><label for="tp-k">Cups in each box</label><input id="tp-k" type="range" min="1" max="10" value="4"><output id="tp-k-o" for="tp-k">4</output></div>
+      </div>
+      <div class="viz" id="tp-viz"></div>
+      <p class="readout" id="tp-out"></p>
+    </div>
+    <div class="panel">
+      <h3>Double number line for a rate</h3>
+      <p class="how">The two lines move together. The highlighted pair is the unit rate: the amount for exactly 1.</p>
+      <div class="ctrls">
+        <div class="ctrl"><label for="dl-ctx">Situation</label><select id="dl-ctx"><option value="0">miles and hours</option><option value="1">dollars and pounds</option><option value="2">pages and minutes</option></select></div>
+        <div class="ctrl"><label for="dl-t" id="dl-t-l">Miles</label><input id="dl-t" type="number" min="1" max="999" value="150" class="sm"></div>
+        <div class="ctrl"><label for="dl-b" id="dl-b-l">Hours</label><input id="dl-b" type="range" min="1" max="10" value="3"><output id="dl-b-o" for="dl-b">3</output></div>
+      </div>
+      <div class="viz" id="dl-viz"></div>
+      <p class="readout" id="dl-out"></p>
+    </div>
+    <div class="panel practice" id="pr-ratio"></div>
+  </section>
+
+  <!-- 6 EQUATIONS -->
+  <section class="topic" id="equations" aria-labelledby="h-t6">
+    <header class="topic-head">
+      <p class="kicker">Topic 6 · Setting up equations</p>
+      <h2 id="h-t6">Keep the scale balanced</h2>
+      <p class="lede">An equation says two sides are equal, like a balanced scale. Whatever you do to one side, do to the other side, and it stays balanced.</p>
+    </header>
+    <ul class="ideas">
+      <li><b>Undo in reverse</b>To solve 3x + 4 = 19, undo the + 4 first, then undo the × 3.</li>
+      <li><b>Inverse operations</b>Subtraction undoes addition. Division undoes multiplication. And the other way around.</li>
+      <li><b>Word problems</b>Name the unknown with a letter, write what the words say as an equation, then solve and check.</li>
+    </ul>
+    <div class="panel">
+      <h3>Balance scale</h3>
+      <p class="how">Each blue block is one <i>x</i>. Each gold square is 1. Use the buttons to get <i>x</i> alone on the left without tipping the scale.</p>
+      <div class="ctrls">
+        <button class="btn btn-primary" id="bal-sub" type="button">Subtract from both sides</button>
+        <button class="btn btn-primary" id="bal-div" type="button">Divide both sides</button>
+        <button class="btn" id="bal-reset" type="button">Start over</button>
+        <button class="btn" id="bal-new" type="button">New equation</button>
+      </div>
+      <div class="viz" id="bal-viz"></div>
+      <ul class="eqlog" id="bal-log" aria-live="polite"></ul>
+      <p class="status" id="bal-status"></p>
+      <div class="ctrls">
+        <span class="ctrl"><b>Make your own:</b></span>
+        <div class="ctrl"><label class="sr" for="bal-a">Number of x</label><input id="bal-a" class="sm" type="number" min="1" max="5" value="3"><span><i>x</i> +</span>
+          <label class="sr" for="bal-b">Number added</label><input id="bal-b" class="sm" type="number" min="0" max="20" value="4"><span>=</span>
+          <label class="sr" for="bal-c">Right side</label><input id="bal-c" class="sm" type="number" min="1" max="60" value="19"></div>
+        <button class="btn" id="bal-load" type="button">Load equation</button>
+      </div>
+      <p class="msg" id="bal-msg"></p>
+    </div>
+    <div class="panel practice" id="pr-eq"></div>
+  </section>
+  </main>
+</div>
+
+<script>
+"use strict";
+/* ---------- helpers ---------- */
+const $=(s,r=document)=>r.querySelector(s);
+const $$=(s,r=document)=>[...r.querySelectorAll(s)];
+const rnd=(a,b)=>Math.floor(Math.random()*(b-a+1))+a;
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+const gcd=(a,b)=>{a=Math.abs(a);b=Math.abs(b);while(b){[a,b]=[b,a%b];}return a;};
+const lcm=(a,b)=>a/gcd(a,b)*b;
+const fmt=(n,dec=4)=>{const k=10**dec;return (Math.round(n*k)/k).toLocaleString('en-US',{maximumFractionDigits:dec});};
+const money=n=>'$'+(Math.round(n*100)/100).toFixed(2);
+const F=(n,d)=>`<span class="frac" aria-hidden="true"><span>${n}</span><span>${d}</span></span><span class="sr">${n}/${d}</span>`;
+const mixedHTML=(n,d)=>{const w=Math.floor(n/d),r=n%d;return r?(w?`${w} ${F(r,d)}`:F(r,d)):`${w}`;};
+const V=v=>`<i>${v}</i>`;
+const coef=a=>a===1?'':a;
+function fig(w,h,body,label){return `<svg class="fig" viewBox="0 0 ${w} ${h}" style="max-width:${w}px" role="img" aria-label="${label}">${body}</svg>`;}
+function legend(items){return `<p class="legend">${items.map(([v,t])=>`<span><span class="sw" style="background:var(${v})"></span>${t}</span>`).join('')}</p>`;}
+const shade=(k,total,cls)=>Array.from({length:total},(_,i)=>i<k?cls:'s-empty');
+const toDec=(i,p)=>p?(i/10**p).toFixed(p):String(i);
+
+/* ---------- answer parsing ---------- */
+function cleanInput(s){return String(s).trim().replace(/[$,]/g,'').replace(/%\s*$/,'').trim();}
+function parseRational(s){
+  s=cleanInput(s); let m;
+  if((m=s.match(/^(-?)(\d+)\s+(\d+)\s*\/\s*(\d+)$/))){const w=+m[2],n=+m[3],d=+m[4];if(!d)return null;const v=w*d+n;return {n:m[1]?-v:v,d,mixed:true};}
+  if((m=s.match(/^(-?\d+)\s*\/\s*(\d+)$/))){const d=+m[2];if(!d)return null;return {n:+m[1],d};}
+  if(/^-?(\d+\.?\d*|\.\d+)$/.test(s)){const p=(s.split('.')[1]||'').length;const d=10**p;return {n:Math.round(parseFloat(s)*d),d,decimal:p>0};}
+  return null;
+}
+function parseNumber(s){const r=parseRational(s);return r?r.n/r.d:null;}
+const checkNum=(exp,tol=1e-9)=>s=>{const v=parseNumber(s);if(v===null)return {ok:false,msg:'Type a number, like 12, 3.5 or 3/4.'};return {ok:Math.abs(v-exp)<=tol};};
+const checkFrac=(n,d,{improper=false}={})=>s=>{
+  const r=parseRational(s);
+  if(!r)return {ok:false,msg:'Type a fraction like 3/4, a mixed number like 1 1/2, or a whole number.'};
+  if(r.n*d!==n*r.d)return {ok:false};
+  if(r.decimal)return {partial:true,msg:'Right value! Now write it as a fraction.'};
+  if(improper&&r.mixed)return {partial:true,msg:'Same amount, but write it as one fraction with the top bigger than the bottom.'};
+  if(r.d!==1&&gcd(r.n,r.d)!==1)return {partial:true,msg:`Right value! Now simplify: ${r.n} and ${r.d} can both be divided by ${gcd(r.n,r.d)}.`};
+  return {ok:true};
+};
+
+/* ---------- drawings ---------- */
+function numberLine({lo,hi,value,result,fEnd,fMid,vLabel}){
+  fMid=fMid||fEnd;
+  const W=640,H=136,P=44,y=64,X=v=>P+(v-lo)/(hi-lo)*(W-2*P);
+  let b=`<line x1="${P}" y1="${y}" x2="${W-P}" y2="${y}" class="s-line"/>`;
+  for(let i=0;i<=10;i++){const xx=X(lo+(hi-lo)*i/10),big=i===0||i===10,mid=i===5;
+    b+=`<line x1="${xx}" y1="${y-(big?14:mid?11:6)}" x2="${xx}" y2="${y+(big?14:mid?11:6)}" class="s-line" style="stroke-width:${big?2.5:1.5}"/>`;}
+  const m=(lo+hi)/2;
+  b+=`<text x="${X(lo)}" y="${y+36}" text-anchor="middle" class="t-b">${fEnd(lo)}</text><text x="${X(hi)}" y="${y+36}" text-anchor="middle" class="t-b">${fEnd(hi)}</text><text x="${X(m)}" y="${y+36}" text-anchor="middle" class="t-s">halfway: ${fMid(m)}</text>`;
+  if(result!==undefined){const rx=X(result);b+=`<circle cx="${rx}" cy="${y}" r="11" class="s-accring"/><text x="${rx}" y="${y+62}" text-anchor="${result===lo?'start':'end'}" class="t-acc">rounds to ${fEnd(result)}</text>`;}
+  const vx=X(value),lx=Math.min(Math.max(vx,P+40),W-P-40);
+  b+=`<line x1="${vx}" y1="${y-20}" x2="${vx}" y2="${y-8}" class="s-thin"/><circle cx="${vx}" cy="${y}" r="7" class="s-a"/><text x="${lx}" y="${y-26}" text-anchor="middle" class="t-b">${vLabel}</text>`;
+  return fig(W,H,b,`Number line from ${fEnd(lo)} to ${fEnd(hi)} with ${vLabel} marked`);
+}
+function blocksSVG(n){
+  const d=[Math.floor(n/1000)%10,Math.floor(n/100)%10,Math.floor(n/10)%10,n%10];
+  const cols=[{name:'Thousands',w:136},{name:'Hundreds',w:124},{name:'Tens',w:118},{name:'Ones',w:64}];
+  const G=18,top=34;let x=0,b='';
+  cols.forEach((c,ci)=>{
+    b+=`<text x="${x+c.w/2}" y="16" text-anchor="middle" class="t-s">${c.name}</text>`;
+    for(let i=0;i<d[ci];i++){
+      if(ci===0){const s=30,dp=9,cx=x+(i%3)*44,cy=top+Math.floor(i/3)*44;
+        b+=`<polygon points="${cx},${cy+dp} ${cx+dp},${cy} ${cx+s+dp},${cy} ${cx+s},${cy+dp}" class="s-a-soft cell"/><polygon points="${cx+s},${cy+dp} ${cx+s+dp},${cy} ${cx+s+dp},${cy+s} ${cx+s},${cy+s+dp}" class="s-a cell" style="opacity:.7"/><rect x="${cx}" y="${cy+dp}" width="${s}" height="${s}" class="s-a cell"/>`;}
+      else if(ci===1){const s=36,cx=x+(i%3)*42,cy=top+Math.floor(i/3)*42;let p='';for(let j=1;j<10;j++)p+=`M${cx+j*s/10} ${cy}V${cy+s}M${cx} ${cy+j*s/10}H${cx+s}`;
+        b+=`<rect x="${cx}" y="${cy}" width="${s}" height="${s}" class="s-a cell"/><path d="${p}" class="grid-on"/>`;}
+      else if(ci===2){const cx=x+i*13,cy=top;let p='';for(let j=1;j<10;j++)p+=`M${cx} ${cy+j*12}H${cx+9}`;
+        b+=`<rect x="${cx}" y="${cy}" width="9" height="120" class="s-a cell"/><path d="${p}" class="grid-on"/>`;}
+      else {const cx=x+(i%3)*20,cy=top+Math.floor(i/3)*20;b+=`<rect x="${cx}" y="${cy}" width="13" height="13" class="s-a cell"/>`;}
+    }
+    b+=`<text x="${x+c.w/2}" y="188" text-anchor="middle" class="t-b" style="font-size:22px">${d[ci]}</text>`;
+    x+=c.w+G;
+  });
+  return fig(x-G,196,b,`${n}: ${d[0]} thousands, ${d[1]} hundreds, ${d[2]} tens, ${d[3]} ones`);
+}
+function barRows(rows,label='Fraction bars'){
+  const W=560,LW=104,BH=32,G=14,GAP=12;
+  const maxW=Math.max(...rows.map(r=>r.wholes||1)),bw=(W-LW-(maxW-1)*GAP)/maxW;
+  let y=4,b='';
+  rows.forEach(r=>{const wh=r.wholes||1,pw=bw/r.d;
+    b+=`<text x="0" y="${y+BH/2+5}" class="t-b">${r.label}</text>`;
+    for(let w=0;w<wh;w++){const x0=LW+w*(bw+GAP);
+      for(let i=0;i<r.d;i++)b+=`<rect x="${(x0+i*pw).toFixed(2)}" y="${y}" width="${pw.toFixed(2)}" height="${BH}" class="${r.cls[w*r.d+i]||'s-empty'} cell"/>`;
+      b+=`<rect x="${x0.toFixed(2)}" y="${y}" width="${bw.toFixed(2)}" height="${BH}" class="s-out"/>`;}
+    y+=BH+G;});
+  return fig(W,y-G+4,b,label);
+}
+function pies(n,d){
+  const wh=Math.max(1,Math.ceil(n/d)),R=48,S=116;let b='';
+  for(let w=0;w<wh;w++){const cx=56+w*S,cy=56,k=Math.max(0,Math.min(d,n-w*d));
+    if(d===1){b+=`<circle cx="${cx}" cy="${cy}" r="${R}" class="${k?'s-a':'s-empty'} cell"/>`;continue;}
+    for(let i=0;i<d;i++){const a0=-Math.PI/2+i*2*Math.PI/d,a1=a0+2*Math.PI/d;
+      const x0=(cx+R*Math.cos(a0)).toFixed(2),y0=(cy+R*Math.sin(a0)).toFixed(2),x1=(cx+R*Math.cos(a1)).toFixed(2),y1=(cy+R*Math.sin(a1)).toFixed(2);
+      b+=`<path d="M${cx} ${cy}L${x0} ${y0}A${R} ${R} 0 0 1 ${x1} ${y1}Z" class="${i<k?'s-a':'s-empty'} cell"/>`;}
+    b+=`<circle cx="${cx}" cy="${cy}" r="${R}" class="s-out"/>`;}
+  return fig(wh*S,114,b,`${n}/${d} shown as circles cut into ${d} parts`);
+}
+function areaModel(a,b,c,d){
+  const S=240,L=40,T=30,cw=S/b,ch=S/d;let s='';
+  for(let col=0;col<b;col++)for(let row=0;row<d;row++){const cls=col<a&&row<c?'s-ab':col<a?'s-a-soft':row<c?'s-b-soft':'s-empty';
+    s+=`<rect x="${(L+col*cw).toFixed(2)}" y="${(T+row*ch).toFixed(2)}" width="${cw.toFixed(2)}" height="${ch.toFixed(2)}" class="${cls} cell"/>`;}
+  s+=`<rect x="${L}" y="${T}" width="${S}" height="${S}" class="s-out"/>`;
+  s+=`<text x="${L+a*cw/2}" y="${T-10}" text-anchor="middle" class="t-b">${a}/${b}</text><text x="${L-8}" y="${T+c*ch/2+5}" text-anchor="end" class="t-b">${c}/${d}</text>`;
+  return fig(L+S+4,T+S+4,s,`Area model for ${a}/${b} times ${c}/${d}`);
+}
+function hundredGrid(k,size=200){
+  const c=size/10;let b='';
+  for(let i=0;i<100;i++){const col=Math.floor(i/10),row=i%10;b+=`<rect x="${col*c+1}" y="${row*c+1}" width="${c}" height="${c}" class="${i<k?'s-a':'s-empty'} cell"/>`;}
+  b+=`<rect x="1" y="1" width="${size}" height="${size}" class="s-out"/>`;
+  return `<div style="width:${size+2}px;flex:none">${fig(size+2,size+2,b,`${k} of 100 squares shaded`)}</div>`;
+}
+const INT_N=['Ones','Tens','Hundreds','Thousands'],FR_N=['Tenths','Hundredths','Thou&shy;sandths','Ten-thou&shy;sandths'];
+function splitDec(s){const [i,f='']=s.split('.');return {i,f};}
+function decimalColumns(nums,{op,result,diffCol}={}){
+  const all=result!==undefined?[...nums,result]:nums,P=all.map(splitDec);
+  const mi=Math.max(...P.map(p=>p.i.length)),mf=Math.max(...P.map(p=>p.f.length));
+  let h='<table class="pv"><thead><tr><th></th>';
+  for(let j=0;j<mi;j++)h+=`<th scope="col">${INT_N[mi-1-j]||''}</th>`;
+  if(mf){h+='<th class="pt"></th>';for(let j=0;j<mf;j++)h+=`<th scope="col">${FR_N[j]||''}</th>`;}
+  h+='</tr></thead><tbody>';
+  P.forEach((p,k)=>{const isRes=result!==undefined&&k===all.length-1,opc=isRes?'=':(op&&k===nums.length-1?op:'');
+    h+=`<tr${isRes?' class="res"':''}><td class="op">${opc}</td>`;
+    const ip=p.i.padStart(mi,' ');
+    for(let j=0;j<mi;j++)h+=`<td${diffCol===j?' class="diff"':''}>${ip[j]===' '?'':ip[j]}</td>`;
+    if(mf){h+='<td class="pt">.</td>';for(let j=0;j<mf;j++){const ch=p.f[j],cl=[ch===undefined?'pad':'',diffCol===mi+j?'diff':''].join(' ').trim();h+=`<td${cl?` class="${cl}"`:''}>${ch===undefined?'0':ch}</td>`;}}
+    h+='</tr>';});
+  return h+'</tbody></table>';
+}
+function compareDec(a,b){
+  const A=splitDec(a),B=splitDec(b),mi=Math.max(A.i.length,B.i.length),mf=Math.max(A.f.length,B.f.length);
+  const sa=A.i.padStart(mi,'0')+A.f.padEnd(mf,'0'),sb=B.i.padStart(mi,'0')+B.f.padEnd(mf,'0');
+  let idx=-1;for(let j=0;j<sa.length;j++)if(sa[j]!==sb[j]){idx=j;break;}
+  const place=idx<0?null:(idx<mi?INT_N[mi-1-idx]:FR_N[idx-mi]).replace(/&shy;/g,'').toLowerCase();
+  const larger=idx<0?null:(sa[idx]>sb[idx]?a:b);
+  const pad=(X)=>X.i+(mf?'.'+X.f.padEnd(mf,'0'):'');
+  return {idx,place,larger,da:sa[idx],db:sb[idx],pa:pad(A),pb:pad(B)};
+}
+function percentBar(p,W,{pay=false,asMoney=false}={}){
+  const Wd=620,P=44,Y=40,BH=34,X=v=>P+v/100*(Wd-2*P),LY=Y+BH+42;
+  const m=pay?100-p:p,fv=v=>(pay||asMoney)?money(W*v/100):fmt(W*v/100,2);
+  let s='';
+  if(pay)s+=`<rect x="${X(0)}" y="${Y}" width="${X(m)-X(0)}" height="${BH}" class="s-a"/><rect x="${X(m)}" y="${Y}" width="${X(100)-X(m)}" height="${BH}" class="s-b"/>`;
+  else s+=`<rect x="${X(0)}" y="${Y}" width="${X(p)-X(0)}" height="${BH}" class="s-a"/>`;
+  for(let v=10;v<100;v+=10)s+=`<line x1="${X(v)}" y1="${Y}" x2="${X(v)}" y2="${Y+BH}" class="s-thin"/>`;
+  s+=`<rect x="${X(0)}" y="${Y}" width="${X(100)-X(0)}" height="${BH}" class="s-out"/>`;
+  s+=`<line x1="${X(0)}" y1="${LY}" x2="${X(100)}" y2="${LY}" class="s-line"/><line x1="${X(m)}" y1="${Y+BH}" x2="${X(m)}" y2="${LY}" class="s-dash"/>`;
+  [...new Set([0,m,100])].forEach(v=>{
+    if(v!==m&&Math.abs(X(v)-X(m))<60)return;
+    s+=`<line x1="${X(v)}" y1="${LY-8}" x2="${X(v)}" y2="${LY+8}" class="s-line"/>`;
+    if(!pay)s+=`<text x="${X(v)}" y="${Y-12}" text-anchor="middle" class="${v===m?'t-acc':'t-s'}">${v}%</text>`;
+    s+=`<text x="${X(v)}" y="${LY+28}" text-anchor="middle" class="${v===m?'t-acc':'t-b'}">${fv(v)}</text>`;
+  });
+  if(pay)s+=`<text x="${(X(0)+X(m))/2}" y="${Y-12}" text-anchor="middle" class="t-b">you pay ${m}%</text><text x="${(X(m)+X(100))/2}" y="${Y-12}" text-anchor="middle" class="t-b">${p}% off</text>`;
+  return fig(Wd,LY+40,s,`Percent bar showing ${p}% of ${W}`);
+}
+function tapeSVG(a,b,k,{nameA='Red',nameB='Blue',showK=true}={}){
+  const LW=96,u=Math.min(64,(540-LW)/Math.max(a,b)),BH=40;let s='';
+  [[a,nameA,'s-a-soft'],[b,nameB,'s-b-soft']].forEach(([n,name,cls],r)=>{const y=6+r*(BH+14);
+    s+=`<text x="0" y="${y+BH/2+5}" class="t-b">${name}</text>`;
+    for(let i=0;i<n;i++)s+=`<rect x="${LW+i*u}" y="${y}" width="${u}" height="${BH}" class="${cls} cell"/><text x="${LW+i*u+u/2}" y="${y+BH/2+5}" text-anchor="middle" class="t-b">${showK?fmt(k):'?'}</text>`;
+    s+=`<rect x="${LW}" y="${y}" width="${n*u}" height="${BH}" class="s-out"/>`;});
+  return fig(LW+Math.max(a,b)*u+4,6+2*BH+14+6,s,`Tape diagram: ${a} boxes and ${b} boxes`);
+}
+function dnl(pairs,{tl,bl}){
+  const W=640,P=100,R=28,H=136,maxB=Math.max(...pairs.map(p=>p.b)),X=v=>P+v/maxB*(W-P-R);
+  let s='';
+  pairs.forEach(p=>{if(p.hl)s+=`<rect x="${X(p.b)-32}" y="10" width="64" height="118" rx="10" class="hl-box"/>`;});
+  s+=`<text x="0" y="51" class="t-s">${tl}</text><text x="0" y="99" class="t-s">${bl}</text><line x1="${P-10}" y1="46" x2="${W-6}" y2="46" class="s-line"/><line x1="${P-10}" y1="94" x2="${W-6}" y2="94" class="s-line"/>`;
+  pairs.forEach(p=>{const x=X(p.b);
+    s+=`<line x1="${x}" y1="38" x2="${x}" y2="54" class="s-line"/><line x1="${x}" y1="86" x2="${x}" y2="102" class="s-line"/>`;
+    s+=`<text x="${x}" y="28" text-anchor="middle" class="${p.unk==='t'?'t-acc':'t-b'}">${p.unk==='t'?'?':fmt(p.t,2)}</text><text x="${x}" y="122" text-anchor="middle" class="${p.unk==='b'?'t-acc':'t-b'}">${p.unk==='b'?'?':fmt(p.b,2)}</text>`;});
+  return fig(W,H,s,`Double number line comparing ${tl} and ${bl}`);
+}
+function balance({lx=0,lu=0,ru=0,fx=0,flu=0,fru=0}){
+  const W=620,H=236,PY=178;let s='';
+  s+=`<polygon points="310,${PY+8} 288,${H-4} 332,${H-4}" class="s-ink"/><rect x="36" y="${PY}" width="548" height="8" rx="4" class="s-ink"/>`;
+  s+=`<rect x="46" y="${PY-7}" width="228" height="7" rx="2" class="s-pan"/><rect x="346" y="${PY-7}" width="228" height="7" rx="2" class="s-pan"/>`;
+  function pile(x0,nx,nu,fadeX,fadeU){let out='';const base=PY-7,xs=30,perX=6,us=14,perU=13;
+    for(let i=0;i<nx;i++){const col=i%perX,row=Math.floor(i/perX),x=x0+8+col*(xs+6),y=base-(row+1)*(xs+4),f=i>=nx-fadeX;
+      out+=`<g${f?' class="s-fade"':''}><rect x="${x}" y="${y}" width="${xs}" height="${xs}" rx="5" class="s-a cell"/><text x="${x+xs/2}" y="${y+xs/2+6}" text-anchor="middle" class="t-inv">x</text></g>`;}
+    const ub=base-Math.ceil(nx/perX)*(xs+4);
+    for(let i=0;i<nu;i++){const col=i%perU,row=Math.floor(i/perU),x=x0+8+col*(us+2),y=ub-(row+1)*(us+2),f=i>=nu-fadeU;
+      out+=`<rect x="${x}" y="${y}" width="${us}" height="${us}" rx="2" class="${f?'s-removed':'s-b cell'}"/>`;}
+    return out;}
+  s+=pile(46,lx,lu,fx,flu)+pile(346,0,ru,0,fru);
+  return fig(W,H,s,`Balance scale: left side ${lx} x-blocks and ${lu-flu} ones, right side ${ru-fru} ones`);
+}
+
+/* ---------- order of operations engine ---------- */
+function tokenize(s){return (s.match(/\d+|[()+\-*/^]/g)||[]).map(t=>/\d/.test(t)?+t:t);}
+function stripParens(t){let ch=true;while(ch){ch=false;for(let i=0;i+2<t.length;i++){if(t[i]==='('&&typeof t[i+1]==='number'&&t[i+2]===')'){t.splice(i,3,t[i+1]);ch=true;break;}}}return t;}
+function opSteps(expr){
+  let t=stripParens(tokenize(expr));const steps=[];let ok=true;
+  while(t.length>1){
+    let lo=0,hi=t.length,inP=false;const close=t.indexOf(')');
+    if(close>=0){let open=close;while(t[open]!=='(')open--;lo=open+1;hi=close;inP=true;}
+    const sub=t.slice(lo,hi);let idx=sub.indexOf('^');
+    if(idx<0)idx=sub.findIndex(x=>x==='*'||x==='/');
+    if(idx<0)idx=sub.findIndex(x=>x==='+'||x==='-');
+    const i=lo+idx,a=t[i-1],op=t[i],b=t[i+1];
+    const v=op==='^'?a**b:op==='*'?a*b:op==='/'?a/b:op==='+'?a+b:a-b;
+    if(!Number.isInteger(v)||v<0)ok=false;
+    const before=t.slice();t.splice(i-1,3,v);stripParens(t);
+    steps.push({before,hs:i-1,he:i+1,op,a,b,v,inP});
+  }
+  return {steps,answer:t[0],ok};
+}
+function renderTokens(t,hs=-1,he=-1){
+  const sym={'+':' + ','-':' − ','*':' × ','/':' ÷ '};const pieces=t.map(x=>typeof x==='number'?String(x):(sym[x]||x));
+  for(let i=0;i<t.length;i++)if(t[i]==='^'){pieces[i]='';pieces[i+1]=`<sup>${t[i+1]}</sup>`;}
+  if(hs<0)return pieces.join('');
+  return pieces.slice(0,hs).join('')+'<mark>'+pieces.slice(hs,he+1).join('')+'</mark>'+pieces.slice(he+1).join('');
+}
+function stepNote(s){
+  const sym={'+':'+','-':'−','*':'×','/':'÷'};
+  const calc=s.op==='^'?`${s.a}<sup>${s.b}</sup> = ${Array(s.b).fill(s.a).join(' × ')} = ${s.v}`:`${s.a} ${sym[s.op]} ${s.b} = ${s.v}`;
+  const why=s.inP?'Parentheses first':s.op==='^'?'Exponents next':(s.op==='*'||s.op==='/')?'Multiply or divide, left to right':'Add or subtract, left to right';
+  return `<span class="why">${why}:</span> ${calc}`;
+}
+function genExpr(){
+  const T=[
+    ()=>`${rnd(2,20)} + ${rnd(2,9)} * ${rnd(2,9)}`,
+    ()=>`(${rnd(2,12)} + ${rnd(2,9)}) * ${rnd(2,6)}`,
+    ()=>{const d=rnd(2,6);return `${rnd(2,9)} * ${rnd(2,9)} - ${d*rnd(1,6)} / ${d}`;},
+    ()=>`${rnd(3,9)}^2 - ${rnd(2,6)} * ${rnd(2,6)}`,
+    ()=>{const s=rnd(2,6),b=rnd(1,9),sq=s*s,dv=[];for(let i=2;i<=sq;i++)if(sq%i===0)dv.push(i);return `(${b+s} - ${b})^2 / ${pick(dv)}`;},
+    ()=>`${rnd(2,20)} + ${rnd(2,6)} * (${rnd(6,12)} - ${rnd(1,5)})`,
+    ()=>`${rnd(12,30)} - ${rnd(2,11)} + ${rnd(2,9)}`,
+    ()=>{const b=rnd(2,6);return `${b*rnd(2,9)} / ${b} * ${rnd(2,5)}`;},
+    ()=>`${rnd(30,60)} - (${rnd(2,5)} + ${rnd(2,5)}) * ${rnd(2,4)}`,
+    ()=>`${rnd(2,5)} * ${rnd(2,4)}^2 + ${rnd(1,9)}`
+  ];
+  for(let k=0;k<80;k++){const e=pick(T)(),r=opSteps(e);if(r.ok)return {expr:e,...r};}
+  const e='4 + 3 * 2';return {expr:e,...opSteps(e)};
+}
+
+/* ---------- practice card ---------- */
+function practice(root,key,gens){
+  let mode=-1,prob=null,hintsShown=0,attempted=false,solved=false,right=0,tries=0,streak=0;
+  root.innerHTML=`<div class="pr-top"><h3>Practice</h3><p class="pr-score" aria-live="polite"></p></div>
+  <div class="chips" role="group" aria-label="Problem type">${['Mix',...gens.map(g=>g.label)].map((l,i)=>`<button type="button" class="chip" data-i="${i-1}" aria-pressed="${i===0}">${l}</button>`).join('')}</div>
+  <div class="pr-prompt" aria-live="polite"></div>
+  <form class="pr-form" novalidate><label class="sr" for="ans-${key}">Your answer</label><input id="ans-${key}" type="text" autocomplete="off" spellcheck="false"><button class="btn btn-primary" type="submit">Check</button></form>
+  <p class="pr-fb" aria-live="polite"></p>
+  <div class="pr-actions"><button type="button" class="btn" data-a="hint">Hint</button><button type="button" class="btn" data-a="sol">Show solution</button><button type="button" class="btn" data-a="new">New problem</button></div>
+  <div class="pr-hints"></div>`;
+  const pr=$('.pr-prompt',root),inp=$('input',root),fb=$('.pr-fb',root),hints=$('.pr-hints',root),sc=$('.pr-score',root),hb=$('[data-a="hint"]',root);
+  const upd=()=>{sc.textContent=`${right} solved · ${tries} tried · streak ${streak}`;hb.textContent=prob&&prob.hints.length?`Hint (${Math.min(hintsShown+1,prob.hints.length)} of ${prob.hints.length})`:'Hint';};
+  function next(){const g=mode<0?pick(gens):gens[mode];prob=g.gen();hintsShown=0;attempted=false;solved=false;
+    pr.innerHTML=prob.prompt;inp.value='';inp.placeholder=prob.ph||'Type your answer';fb.className='pr-fb';fb.textContent='';hints.innerHTML='';upd();}
+  function showHints(all){hintsShown=all?prob.hints.length:Math.min(hintsShown+1,prob.hints.length);
+    let h=prob.visual?`<div class="viz">${prob.visual}</div>`:'';
+    h+=`<ol class="steps">${prob.hints.slice(0,hintsShown).map(x=>`<li>${x}</li>`).join('')}</ol>`;
+    if(all)h+=`<p class="answer">Answer: <strong>${prob.answer}</strong></p>`;
+    hints.innerHTML=h;upd();if(hintsShown>=prob.hints.length)hb.textContent='All hints shown';}
+  $('.chips',root).addEventListener('click',e=>{const b=e.target.closest('.chip');if(!b)return;mode=+b.dataset.i;$$('.chip',root).forEach(c=>c.setAttribute('aria-pressed',c===b));next();});
+  $('form',root).addEventListener('submit',e=>{e.preventDefault();
+    const v=inp.value;if(!v.trim()){fb.className='pr-fb warn';fb.textContent='Type an answer first.';return;}
+    if(!attempted){attempted=true;tries++;}
+    const r=prob.check(v);
+    if(r.ok){if(!solved){solved=true;right++;streak++;}fb.className='pr-fb good';fb.textContent=`${pick(['Correct!','Nice work!','That’s it!','Yes!'])} ${r.msg||''} Press New problem for another one.`;}
+    else if(r.partial){fb.className='pr-fb warn';fb.textContent=r.msg;}
+    else {streak=0;fb.className='pr-fb bad';fb.textContent=r.msg||'Not quite. Check your work, or open a hint.';}
+    upd();});
+  root.addEventListener('click',e=>{const a=e.target.closest('[data-a]');if(!a)return;
+    if(a.dataset.a==='new')next();
+    else if(a.dataset.a==='hint')showHints(false);
+    else {if(!solved)streak=0;showHints(true);}});
+  next();
+}
+
+/* ---------- generators: whole numbers ---------- */
+function genOrderOps(){
+  const st=genExpr();
+  return {prompt:`Evaluate: <span class="mathx">${renderTokens(tokenize(st.expr))}</span>`,check:checkNum(st.answer),answer:st.answer,ph:'A whole number',
+    hints:['Order: parentheses, exponents, multiply and divide (left to right), add and subtract (left to right).',
+      ...st.steps.map((s,k)=>`<span class="mathx">${k?'= ':''}${renderTokens(s.before,s.hs,s.he)}</span><br>${stepNote(s)}`),
+      `<span class="mathx">= ${st.answer}</span>`]};
+}
+function genRounding(){
+  const [p,name]=pick([[10,'ten'],[100,'hundred'],[1000,'thousand']]);
+  const lo=rnd(1,99)*p,n=lo+(Math.random()<.2?p/2:rnd(1,p-1)),mid=lo+p/2,ans=n>=mid?lo+p:lo,digit=Math.floor(n/(p/10))%10;
+  return {prompt:`Round <b>${fmt(n)}</b> to the nearest ${name}.`,check:checkNum(ans),answer:fmt(ans),
+    visual:numberLine({lo,hi:lo+p,value:n,result:ans,fEnd:x=>fmt(x),vLabel:fmt(n)}),
+    hints:[`The multiples of ${fmt(p)} on either side are ${fmt(lo)} and ${fmt(lo+p)}.`,
+      `Halfway between them is ${fmt(mid)}. ${n===mid?`${fmt(n)} is exactly halfway, and halfway rounds up.`:n>mid?`${fmt(n)} is past halfway, so it rounds up.`:`${fmt(n)} is before halfway, so it rounds down.`}`,
+      `Digit shortcut: the digit just right of the ${name}s place is ${digit}. ${digit>=5?'5 or more rounds up.':'4 or less rounds down.'}`,
+      `${fmt(n)} rounds to ${fmt(ans)}.`]};
+}
+function genPlaceValue(){
+  const names=['ones','tens','hundreds','thousands','ten thousands'];
+  let n,pos,dig;do{n=rnd(10000,99999);pos=rnd(0,4);dig=Math.floor(n/10**pos)%10;}while(dig===0);
+  const s=fmt(n);let count=-1,out='';for(let i=s.length-1;i>=0;i--){const ch=s[i];if(/\d/.test(ch)){count++;out=(count===pos?`<mark>${ch}</mark>`:ch)+out;}else out=ch+out;}
+  const val=dig*10**pos;
+  return {prompt:`What is the value of the highlighted digit in <span class="mathx">${out}</span>?`,check:checkNum(val),answer:fmt(val),
+    hints:[`Count places from the right: ones, tens, hundreds, thousands, ten thousands. The highlighted ${dig} is in the ${names[pos]} place.`,`It is worth ${dig} × ${fmt(10**pos)} = ${fmt(val)}.`]};
+}
+
+/* ---------- generators: fractions ---------- */
+function genSimplify(){
+  let d0=rnd(2,12),n0;do{n0=rnd(1,d0-1);}while(gcd(n0,d0)!==1);const g=rnd(2,6),n=n0*g,d=d0*g;
+  return {prompt:`Simplify ${F(n,d)}`,check:checkFrac(n0,d0),answer:F(n0,d0),ph:'Like 3/4',
+    visual:barRows([{label:`${n}/${d}`,d,cls:shade(n,d,'s-a')},{label:`${n0}/${d0}`,d:d0,cls:shade(n0,d0,'s-a')}],`${n}/${d} and ${n0}/${d0} shade the same amount`),
+    hints:[`Find the greatest common factor of ${n} and ${d}. Both divide evenly by ${g}, and no bigger number works.`,
+      `Divide the top and bottom by ${g}: ${n} ÷ ${g} = ${n0} and ${d} ÷ ${g} = ${d0}.`,
+      `${F(n,d)} = ${F(n0,d0)}. The bars shade the same amount, cut into fewer, bigger pieces.`]};
+}
+function addFracVisual(a,b,c,d,op){
+  const L=lcm(b,d),A=a*L/b,C=c*L/d;
+  const rows=[{label:`${a}/${b}`,d:b,cls:shade(a,b,'s-a')},{label:`${c}/${d}`,d,cls:shade(c,d,'s-b')},
+    {label:`${A}/${L}`,d:L,cls:shade(A,L,'s-a')},{label:`${C}/${L}`,d:L,cls:shade(C,L,'s-b')}];
+  if(op==='+'){const tot=A+C,wh=Math.max(1,Math.ceil(tot/L)),cls=Array(wh*L).fill('s-empty');for(let i=0;i<tot;i++)cls[i]=i<A?'s-a':'s-b';rows.push({label:`= ${tot}/${L}`,d:L,wholes:wh,cls});}
+  else {const cls=Array(L).fill('s-empty');for(let i=0;i<A;i++)cls[i]=i<A-C?'s-a':'s-removed';rows.push({label:`= ${A-C}/${L}`,d:L,cls});}
+  return barRows(rows,`${a}/${b} ${op} ${c}/${d} using pieces of size 1/${L}`)+legend([['--qa',`${a}/${b}`],['--qb',`${c}/${d}`]].concat(op==='+'?[]:[['--bad-bg','dashed pieces are taken away']]));
+}
+function genAddSub(){
+  let b,d;do{b=rnd(2,10);d=rnd(2,10);}while(b===d);let a=rnd(1,b-1),c=rnd(1,d-1),op=pick(['+','−']);
+  if(op==='−'&&a*d<c*b)[a,b,c,d]=[c,d,a,b];if(op==='−'&&a*d===c*b)op='+';
+  const L=lcm(b,d),A=a*L/b,C=c*L/d,N=op==='+'?A+C:A-C,g=gcd(N,L),rn=N/g,rd=L/g;
+  const ansH=rd===1?`${rn}`:(rn>rd?`${F(rn,rd)} = ${mixedHTML(rn,rd)}`:F(rn,rd));
+  return {prompt:`${F(a,b)} ${op} ${F(c,d)} = ?`,check:checkFrac(rn,rd),answer:ansH,ph:'Like 5/6 or 1 1/4',visual:addFracVisual(a,b,c,d,op),
+    hints:[`The pieces are different sizes (${F(1,b)} and ${F(1,d)}), so you can't ${op==='+'?'add':'subtract'} them yet. The least common multiple of ${b} and ${d} is ${L}, so use ${L} as the common denominator.`,
+      `Rewrite each fraction: ${F(a,b)} = ${F(A,L)} (multiply top and bottom by ${L/b}) and ${F(c,d)} = ${F(C,L)} (multiply top and bottom by ${L/d}).`,
+      `Now the pieces match. ${op==='+'?'Add':'Subtract'} the tops and keep the bottom: ${A} ${op} ${C} = ${N}, so you get ${F(N,L)}.`,
+      ...(g>1?[`Simplify: divide top and bottom by ${g} to get ${F(rn,rd)}.`]:[]),
+      ...(rn>rd&&rd!==1?[`As a mixed number that's ${mixedHTML(rn,rd)}. Either form is fine.`]:[])]};
+}
+function genMultiply(){
+  const b=rnd(2,6),d=rnd(2,6),a=rnd(1,b-1),c=rnd(1,d-1),N=a*c,D=b*d,g=gcd(N,D);
+  return {prompt:`${F(a,b)} × ${F(c,d)} = ?`,check:checkFrac(N/g,D/g),answer:F(N/g,D/g),ph:'Like 3/10',
+    visual:areaModel(a,b,c,d)+legend([['--qa-soft',`${a}/${b} of the columns`],['--qb-soft',`${c}/${d} of the rows`],['--qab','overlap = the answer']]),
+    hints:[`Multiply straight across. Tops: ${a} × ${c} = ${N}. Bottoms: ${b} × ${d} = ${D}.`,
+      `In the picture the square is cut into ${b} columns and ${d} rows, ${D} small pieces in all. The ${N} overlap pieces are ${F(a,b)} of ${F(c,d)}.`,
+      g>1?`Simplify: ${F(N,D)} = ${F(N/g,D/g)} (divide top and bottom by ${g}).`:`${F(N,D)} is already in simplest form.`]};
+}
+function genMixed(){
+  const w=rnd(1,4),d=rnd(2,8);let n;do{n=rnd(1,d-1);}while(gcd(n,d)!==1);const tot=w*d+n;
+  return {prompt:`Write ${w} ${F(n,d)} as an improper fraction.`,check:checkFrac(tot,d,{improper:true}),answer:F(tot,d),ph:'Like 11/4',
+    visual:barRows([{label:`${w} ${n}/${d}`,d,wholes:w+1,cls:shade(tot,(w+1)*d,'s-a')}],`${w} and ${n}/${d} shown as bars`),
+    hints:[`Each whole is cut into ${d} pieces. ${w} whole${w>1?'s':''} = ${w} × ${d} = ${w*d} pieces.`,`Add the ${n} extra piece${n>1?'s':''}: ${w*d} + ${n} = ${tot}.`,`So ${w} ${F(n,d)} = ${F(tot,d)}.`]};
+}
+
+/* ---------- generators: decimals ---------- */
+function genDecAdd(){
+  let px=rnd(1,3),py=rnd(1,3);if(px===py&&Math.random()<.7)py=px===1?2:1;
+  let xi=rnd(10**px,50*10**px),yi=rnd(10**py,30*10**py),op=pick(['+','−']);
+  if(xi%10===0)xi++;if(yi%10===0)yi++;
+  let P=Math.max(px,py),X=xi*10**(P-px),Y=yi*10**(P-py);
+  let xs=toDec(xi,px),ys=toDec(yi,py);
+  if(op==='−'&&X<Y){[X,Y]=[Y,X];[xs,ys]=[ys,xs];}
+  const R=op==='+'?X+Y:X-Y,rs=toDec(R,P),ans=R/10**P;
+  return {prompt:`<span class="mathx">${xs} ${op} ${ys} = ?</span>`,check:checkNum(ans,1e-9),answer:fmt(ans,3),
+    visual:decimalColumns([xs,ys],{op,result:rs}),
+    hints:['Write the numbers one above the other with the decimal points lined up.',
+      `Fill the empty places with zeros so both have ${P} decimal place${P>1?'s':''}: ${toDec(X,P)} and ${toDec(Y,P)}.`,
+      `${op==='+'?'Add':'Subtract'} column by column from the right, like whole numbers. The decimal point drops straight down.`,
+      `${xs} ${op} ${ys} = ${fmt(ans,3)}`]};
+}
+function genDecCompare(){
+  const w=rnd(0,9),t=rnd(2,9),v=rnd(1,3);let a,b;
+  if(v===1){a=`${w}.${t}`;b=`${w}.${t-1}${rnd(1,9)}`;}
+  else if(v===2){a=`${w}.0${t}`;b=`${w}.${t}`;}
+  else {const h=rnd(1,9);a=`${w}.${t}${h}`;b=`${w}.${t}${h}${rnd(1,9)}`;}
+  if(Math.random()<.5)[a,b]=[b,a];
+  const c=compareDec(a,b),longer=a.length>b.length?a:b;
+  return {prompt:`Which is larger: <span class="mathx">${a}</span> or <span class="mathx">${b}</span>? Type the larger number.`,check:checkNum(+c.larger),answer:c.larger,
+    visual:decimalColumns([a,b],{diffCol:c.idx}),
+    hints:['Line up the decimal points.',`Fill empty places with zeros so both numbers have the same number of digits: ${c.pa} and ${c.pb}.`,
+      `Compare place by place from the left. The first place that differs is the ${c.place}: ${c.da} versus ${c.db}.`,
+      `So ${c.larger} is larger.${c.larger!==longer?' Notice that the number with more digits is not the bigger one.':''}`]};
+}
+function genFracToDec(){
+  const d=pick([2,4,5,8,10,20,25,50]),n=rnd(1,d-1),ans=n/d,k100=100%d===0?100/d:null,k1000=!k100&&1000%d===0?1000/d:null;
+  return {prompt:`Write ${F(n,d)} as a decimal.`,check:checkNum(ans),answer:fmt(ans,3),
+    visual:k100?`<div class="row" style="display:flex;justify-content:center">${hundredGrid(n*k100)}</div>`:'',
+    hints:[`A fraction bar means divide: ${n} ÷ ${d}.`,
+      k100?`Or rename it with 100 on the bottom: multiply top and bottom by ${k100} to get ${F(n*k100,100)}, which is ${n*k100} hundredths.`:`Or rename it with 1,000 on the bottom: multiply top and bottom by ${k1000} to get ${F(n*k1000,1000)}, which is ${n*k1000} thousandths.`,
+      `${F(n,d)} = ${fmt(ans,3)}`]};
+}
+function genDecRound(){
+  const [p,name,dec]=pick([[100,'tenth',1],[10,'hundredth',2]]);
+  let vi;do{vi=rnd(1001,20999);}while(vi%p===0);
+  const lo=Math.floor(vi/p)*p,mid=lo+p/2,ans=vi>=mid?lo+p:lo,digit=Math.floor(vi/(p/10))%10;
+  const f=x=>(x/1000).toFixed(dec);
+  return {prompt:`Round <b class="mathx">${(vi/1000).toFixed(3)}</b> to the nearest ${name}.`,check:checkNum(ans/1000,1e-9),answer:f(ans),
+    visual:numberLine({lo,hi:lo+p,value:vi,result:ans,fEnd:f,fMid:x=>(x/1000).toFixed(dec+1),vLabel:(vi/1000).toFixed(3)}),
+    hints:[`The ${name}s on either side are ${f(lo)} and ${f(lo+p)}.`,`Look at the digit just right of the ${name}s place. It is ${digit}. ${digit>=5?'5 or more rounds up.':'4 or less rounds down.'}`,`So ${(vi/1000).toFixed(3)} rounds to ${f(ans)}.`]};
+}
+
+/* ---------- generators: percents ---------- */
+function genPctOf(){
+  const p=pick([5,10,15,20,25,30,40,50,60,75,80,90]),W=pick([20,40,60,80,120,160,200,240,300,400]),ans=p*W/100;
+  return {prompt:`What is ${p}% of ${W}?`,check:checkNum(ans,0.001),answer:fmt(ans,2),visual:percentBar(p,W),
+    hints:[`Percent means “out of 100,” so ${p}% = ${F(p,100)} = ${fmt(p/100)}.`,`“Of” means multiply: ${fmt(p/100)} × ${W} = ${fmt(ans,2)}.`,
+      `Check with 10%: 10% of ${W} is ${fmt(W/10,2)}. ${p}% is ${fmt(p/10,1)} times that: ${fmt(p/10,1)} × ${fmt(W/10,2)} = ${fmt(ans,2)}.`]};
+}
+function genDiscount(){
+  const P=rnd(4,40)*5,pct=pick([10,15,20,25,30,40,50]),d=P*pct/100,sale=P-d,item=pick(['jacket','backpack','pair of headphones','lamp','desk chair']);
+  return {prompt:`A ${item} costs ${money(P)} and is on sale for ${pct}% off. What is the sale price?`,check:checkNum(sale,0.006),answer:money(sale),ph:'Dollars, like 45.50',
+    visual:percentBar(pct,P,{pay:true}),
+    hints:[`Find the discount: ${pct}% of ${money(P)} = ${fmt(pct/100)} × ${fmt(P)} = ${money(d)}.`,`Subtract it from the price: ${money(P)} − ${money(d)} = ${money(sale)}.`,
+      `Shortcut: ${pct}% off means you pay ${100-pct}%. ${fmt((100-pct)/100)} × ${fmt(P)} = ${money(sale)}.`]};
+}
+function genFindPct(){
+  const W=pick([20,25,40,50,80,200]);let p;do{p=rnd(1,19)*5;}while((W*p)%100!==0);const part=W*p/100;
+  return {prompt:`${part} is what percent of ${W}?`,check:checkNum(p),answer:`${p}%`,ph:'Like 35 or 35%',visual:percentBar(p,W),
+    hints:[`Write the part over the whole: ${F(part,W)}.`,`Divide: ${part} ÷ ${W} = ${fmt(part/W)}.`,`Multiply by 100 to get a percent: ${fmt(part/W)} × 100 = ${p}%.`]};
+}
+function genPctConvert(){
+  const kind=rnd(1,3);
+  if(kind===1){const p=rnd(1,99),ds=toDec(p,2);
+    return {prompt:`Write <span class="mathx">${ds}</span> as a percent.`,check:checkNum(p),answer:`${p}%`,ph:'Like 45%',visual:`<div style="display:flex;justify-content:center">${hundredGrid(p)}</div>`,
+      hints:[`${ds} is ${p} hundredths, and percent means hundredths.`,`Multiply by 100 (move the decimal point two places right): ${ds} → ${p}%.`]};}
+  if(kind===2){const p=rnd(1,99),ds=toDec(p,2);
+    return {prompt:`Write ${p}% as a decimal.`,check:s=>{const v=parseNumber(s);if(v===p)return {ok:false,msg:'That’s still the percent. Divide by 100 to get the decimal.'};return checkNum(p/100)(s);},answer:ds,ph:'Like 0.45',
+      visual:`<div style="display:flex;justify-content:center">${hundredGrid(p)}</div>`,
+      hints:[`${p}% means ${p} out of 100: ${F(p,100)}.`,`Divide by 100 (move the decimal point two places left): ${p}% → ${ds}.`]};}
+  const [n,d]=pick([[1,2],[1,4],[3,4],[1,5],[2,5],[3,5],[4,5],[1,10],[3,10],[7,10],[9,10],[1,20],[1,8],[3,8]]),p=n/d*100;
+  return {prompt:`Write ${F(n,d)} as a percent.`,check:checkNum(p,1e-6),answer:`${fmt(p,2)}%`,ph:'Like 40%',
+    visual:Number.isInteger(p)?`<div style="display:flex;justify-content:center">${hundredGrid(p)}</div>`:'',
+    hints:[`Divide: ${n} ÷ ${d} = ${fmt(n/d,4)}.`,`Multiply by 100 to get a percent: ${fmt(n/d,4)} × 100 = ${fmt(p,2)}%.`,
+      ...(100%d===0?[`Another way: rename with 100 on the bottom. ${F(n,d)} = ${F(n*100/d,100)} = ${n*100/d}%.`]:[])]};
+}
+
+/* ---------- generators: ratios ---------- */
+function genProportion(){
+  const b=rnd(2,9),a=rnd(1,12),k=rnd(2,6),unkTop=Math.random()<.65;
+  const pairs=[{t:0,b:0}];for(let j=1;j<=k;j++)pairs.push({t:a*j,b:b*j,unk:j===k?(unkTop?'t':'b'):null,hl:j===1});
+  const prompt=unkTop?`Solve for ${V('x')}: ${F(a,b)} = ${F(V('x'),b*k)}`:`Solve for ${V('x')}: ${F(a,b)} = ${F(a*k,V('x'))}`;
+  const ans=unkTop?a*k:b*k;
+  return {prompt,check:checkNum(ans),answer:ans,visual:dnl(pairs,{tl:'top',bl:'bottom'}),
+    hints:unkTop?[`Compare the bottoms: ${b} became ${b*k}. That's ${b} × ${k}, so the scale factor is ${k}.`,`Do the same to the top: ${a} × ${k} = ${a*k}.`,`Check by cross-multiplying: ${a} × ${b*k} = ${a*b*k} and ${b} × ${a*k} = ${a*b*k}. They match.`]
+      :[`Compare the tops: ${a} became ${a*k}. That's ${a} × ${k}, so the scale factor is ${k}.`,`Do the same to the bottom: ${b} × ${k} = ${b*k}.`,`Check by cross-multiplying: ${a} × ${b*k} = ${a*b*k} and ${b} × ${a*k} = ${a*b*k}. They match.`]};
+}
+function genUnitRate(){
+  if(Math.random()<.5){const u=pick([0.75,1.25,1.5,2,2.5,3,4]),n=rnd(2,8),P=u*n,item=pick(['notebooks','pens','bagels','folders']);
+    return {prompt:`${n} ${item} cost ${money(P)}. What is the price for one?`,check:checkNum(u,0.006),answer:money(u),ph:'Dollars, like 1.25',
+      visual:dnl([{t:0,b:0},{t:u,b:1,unk:'t',hl:true},{t:P,b:n}],{tl:'dollars',bl:item}),
+      hints:['A unit rate is the amount for exactly 1.',`Divide the cost by the number of ${item}: ${money(P)} ÷ ${n} = ${money(u)}.`,`Check: ${n} × ${money(u)} = ${money(P)}.`]};}
+  const r=rnd(8,14)*5,h=rnd(2,5),M=r*h;
+  return {prompt:`A car travels ${M} miles in ${h} hours at a steady speed. How many miles per hour is that?`,check:checkNum(r),answer:`${r} miles per hour`,
+    visual:dnl([{t:0,b:0},{t:r,b:1,unk:'t',hl:true},...Array.from({length:h-1},(_,i)=>({t:r*(i+2),b:i+2,unk:null})).slice(0,-1),{t:M,b:h}],{tl:'miles',bl:'hours'}),
+    hints:['“Per hour” means for exactly 1 hour.',`Divide the miles by the hours: ${M} ÷ ${h} = ${r}.`,`Check: ${r} × ${h} = ${M}.`]};
+}
+function genRatioShare(){
+  let a,b;do{a=rnd(1,6);b=rnd(1,6);}while(a===b||gcd(a,b)!==1);const k=rnd(2,12),T=(a+b)*k;
+  const [A,B,unit]=pick([['red paint','blue paint','cups'],['sand','gravel','buckets'],['water','juice concentrate','cups']]);
+  const askB=Math.random()<.5,n=askB?b:a,ans=n*k;
+  return {prompt:`A mix uses ${A} and ${B} in a ratio of ${a}:${b}. You make ${T} ${unit} in all. How many ${unit} of ${askB?B:A}?`,check:checkNum(ans),answer:`${ans} ${unit}`,
+    visual:tapeSVG(a,b,k,{nameA:A.split(' ')[0],nameB:B.split(' ')[0]}),
+    hints:[`Draw a tape: ${a} box${a>1?'es':''} for ${A} and ${b} box${b>1?'es':''} for ${B}. That's ${a+b} equal boxes.`,
+      `All the boxes together hold ${T}, so each box is ${T} ÷ ${a+b} = ${k}.`,`${askB?B:A} gets ${n} box${n>1?'es':''}: ${n} × ${k} = ${ans}.`]};
+}
+function genConvert(){
+  const f=pick([{big:'ft',small:'in',k:12,bigN:'feet',smallN:'inches'},{big:'yd',small:'ft',k:3,bigN:'yards',smallN:'feet'},{big:'lb',small:'oz',k:16,bigN:'pounds',smallN:'ounces'},
+    {big:'hr',small:'min',k:60,bigN:'hours',smallN:'minutes'},{big:'min',small:'sec',k:60,bigN:'minutes',smallN:'seconds'},{big:'L',small:'mL',k:1000,bigN:'liters',smallN:'milliliters'},
+    {big:'m',small:'cm',k:100,bigN:'meters',smallN:'centimeters'},{big:'gal',small:'qt',k:4,bigN:'gallons',smallN:'quarts'}]);
+  const n=rnd(2,9),down=Math.random()<.6;
+  const pairs=[{t:0,b:0},{t:1,b:f.k,hl:true},{t:n,b:n*f.k,unk:down?'b':'t'}];
+  return {prompt:down?`Convert: ${n} ${f.bigN} = ? ${f.smallN}`:`Convert: ${fmt(n*f.k)} ${f.smallN} = ? ${f.bigN}`,check:checkNum(down?n*f.k:n),answer:down?`${fmt(n*f.k)} ${f.smallN}`:`${n} ${f.bigN}`,
+    visual:dnl(pairs,{tl:f.bigN,bl:f.smallN}),
+    hints:[`Use the fact 1 ${f.big} = ${fmt(f.k)} ${f.small}.`,
+      down?`Each ${f.big} is ${fmt(f.k)} ${f.small}, so multiply: ${n} × ${fmt(f.k)} = ${fmt(n*f.k)}.`:`Every ${fmt(f.k)} ${f.small} make 1 ${f.big}, so divide: ${fmt(n*f.k)} ÷ ${fmt(f.k)} = ${n}.`,
+      `As a proportion: ${F(1,fmt(f.k))} = ${F(n,fmt(n*f.k))}.`]};
+}
+
+/* ---------- generators: equations ---------- */
+function genOneStep(){
+  const t=rnd(1,4);
+  if(t===1){const a=rnd(2,15),x=rnd(2,15),b=x+a;
+    return {prompt:`Solve: ${V('x')} + ${a} = ${b}`,check:checkNum(x),answer:`${V('x')} = ${x}`,visual:b<=50?balance({lx:1,lu:a,ru:b}):'',
+      hints:[`${a} is added to ${V('x')}. Undo it by subtracting ${a} from both sides.`,`${V('x')} + ${a} − ${a} = ${b} − ${a}, so ${V('x')} = ${x}.`,`Check: ${x} + ${a} = ${b}. ✓`]};}
+  if(t===2){const a=rnd(2,15),x=a+rnd(1,12),b=x-a;
+    return {prompt:`Solve: ${V('x')} − ${a} = ${b}`,check:checkNum(x),answer:`${V('x')} = ${x}`,
+      hints:[`${a} is subtracted from ${V('x')}. Undo it by adding ${a} to both sides.`,`${V('x')} − ${a} + ${a} = ${b} + ${a}, so ${V('x')} = ${x}.`,`Check: ${x} − ${a} = ${b}. ✓`]};}
+  if(t===3){const a=rnd(2,9),x=rnd(2,9),b=a*x;
+    return {prompt:`Solve: ${a}${V('x')} = ${b}`,check:checkNum(x),answer:`${V('x')} = ${x}`,visual:b<=60?balance({lx:a,ru:b}):'',
+      hints:[`${a}${V('x')} means ${a} times ${V('x')}. Undo it by dividing both sides by ${a}.`,`${b} ÷ ${a} = ${x}, so ${V('x')} = ${x}.`,`Check: ${a} × ${x} = ${b}. ✓`]};}
+  const a=rnd(2,6),b=rnd(2,9),x=a*b;
+  return {prompt:`Solve: ${F(V('x'),a)} = ${b}`,check:checkNum(x),answer:`${V('x')} = ${x}`,
+    hints:[`${F(V('x'),a)} means ${V('x')} divided by ${a}. Undo it by multiplying both sides by ${a}.`,`${b} × ${a} = ${x}, so ${V('x')} = ${x}.`,`Check: ${x} ÷ ${a} = ${b}. ✓`]};
+}
+function genTwoStep(){
+  const a=rnd(2,5),x=rnd(1,9),plus=Math.random()<.65;let b=rnd(1,12);if(!plus&&b>=a*x)b=rnd(1,a*x-1);
+  const c=plus?a*x+b:a*x-b,mid=plus?c-b:c+b;
+  const vis=plus&&c<=60?balance({lx:a,lu:b,ru:c})+balance({lx:a,lu:b,ru:c,flu:b,fru:b})+legend([['--qa','one x'],['--qb','one'],['--bad-bg',`dashed: the ${b} taken off each side`]]):'';
+  return {prompt:`Solve: ${a}${V('x')} ${plus?'+':'−'} ${b} = ${c}`,check:checkNum(x),answer:`${V('x')} = ${x}`,visual:vis,
+    hints:[`Undo the ${plus?'adding':'subtracting'} first: ${plus?'subtract':'add'} ${b} ${plus?'from':'to'} both sides. ${a}${V('x')} = ${mid}.`,
+      `Then undo the multiplying: divide both sides by ${a}. ${V('x')} = ${mid} ÷ ${a} = ${x}.`,`Check: ${a} × ${x} ${plus?'+':'−'} ${b} = ${c}. ✓`]};
+}
+function genWord(){
+  const ctx=pick([
+    ()=>{const r=pick([35,40,45,50,60,75]),f=pick([25,30,40,50,60]),h=rnd(2,8);return {p:`A repair shop charges a $${f} service fee plus $${r} per hour of labor. Your bill is $${r*h+f}. How many hours of labor were billed?`,v:'h',means:'the number of hours',a:r,b:f,c:r*h+f,x:h};},
+    ()=>{const s=pick([40,50,75,100,120]),w=pick([15,20,25,30,40]),n=rnd(3,12);return {p:`You have $${s} saved and add $${w} each week. How many weeks until you have $${s+w*n}?`,v:'w',means:'the number of weeks',a:w,b:s,c:s+w*n,x:n};},
+    ()=>{const a=rnd(2,9),b=rnd(2,20),x=rnd(2,15);return {p:`${a} times a number, plus ${b}, equals ${a*x+b}. What is the number?`,v:'n',means:'the number',a,b,c:a*x+b,x};},
+    ()=>{const m=pick([30,35,40,45,50,55]),f=pick([20,25,30,35]),n=rnd(2,12);return {p:`A phone plan costs $${m} per month plus a one-time $${f} activation fee. You have paid $${m*n+f} in total. How many months have you had the plan?`,v:'m',means:'the number of months',a:m,b:f,c:m*n+f,x:n};}
+  ])();
+  return {prompt:ctx.p,check:checkNum(ctx.x),answer:`${V(ctx.v)} = ${ctx.x}`,
+    hints:[`Let ${V(ctx.v)} = ${ctx.means}.`,`Write what the words say: ${ctx.a}${V(ctx.v)} + ${ctx.b} = ${ctx.c}.`,
+      `Subtract ${ctx.b} from both sides: ${ctx.a}${V(ctx.v)} = ${ctx.c-ctx.b}.`,`Divide both sides by ${ctx.a}: ${V(ctx.v)} = ${ctx.x}.`,
+      `Check in the story: ${ctx.a} × ${ctx.x} + ${ctx.b} = ${ctx.c}. ✓`]};
+}
+
+/* ---------- explorers ---------- */
+function initWhole(){
+  const n=$('#pv-n'),r=$('#pv-r');
+  function draw(v){v=Math.max(0,Math.min(9999,Math.round(+v||0)));r.value=v;$('#pv-viz').innerHTML=blocksSVG(v);
+    const d=[Math.floor(v/1000)%10,Math.floor(v/100)%10,Math.floor(v/10)%10,v%10],vals=[1000,100,10,1],nm=['thousand','hundred','ten','one'];
+    const parts=d.map((x,i)=>x*vals[i]).filter(x=>x>0).map(x=>fmt(x));
+    $('#pv-out').innerHTML=`<span class="big mathx">${fmt(v)}</span> = ${parts.length?parts.join(' + '):'0'}<br>${d.map((x,i)=>`${x} ${nm[i]}${x===1?'':'s'}`).join(', ')}`;}
+  n.addEventListener('input',()=>draw(n.value));r.addEventListener('input',()=>{n.value=r.value;draw(r.value);});draw(2435);
+  const rn=$('#rd-n'),rp=$('#rd-p');
+  function drawR(){const v=Number(rn.value),msg=$('#rd-msg');
+    if(!(Number.isInteger(v)&&v>=0&&v<=99999)){msg.textContent='Type a whole number from 0 to 99,999.';return;}msg.textContent='';
+    const p=+rp.value,lo=Math.floor(v/p)*p,hi=lo+p,ans=v-lo>=p/2?hi:lo,digit=Math.floor(v/(p/10))%10,nm={10:'ten',100:'hundred',1000:'thousand'}[p];
+    $('#rd-viz').innerHTML=numberLine({lo,hi,value:v,result:ans,fEnd:x=>fmt(x),vLabel:fmt(v)});
+    $('#rd-out').innerHTML=v%p===0?`${fmt(v)} is already a multiple of ${fmt(p)}, so it stays ${fmt(v)}.`:`${fmt(v)} is between ${fmt(lo)} and ${fmt(hi)}. The digit just right of the ${nm}s place is <b>${digit}</b>, so it rounds ${ans===hi?'up':'down'} to <b>${fmt(ans)}</b>.`;}
+  rn.addEventListener('input',drawR);rp.addEventListener('change',drawR);drawR();
+  let st=genExpr(),shown=0;const box=$('#ops-box'),nx=$('#ops-next');
+  function drawO(){let h='';
+    for(let k=0;k<shown;k++){const s=st.steps[k];h+=`<div class="ops-line"><span class="mathx">${k?'= ':''}${renderTokens(s.before,s.hs,s.he)}</span><span class="ops-note">${stepNote(s)}</span></div>`;}
+    if(shown===0)h+=`<div class="ops-line"><span class="mathx">${renderTokens(tokenize(st.expr))}</span><span class="ops-note">What gets done first? Press Next step.</span></div>`;
+    else if(shown===st.steps.length)h+=`<div class="ops-line final"><span class="mathx">= ${st.answer}</span><span class="ops-note">Done.</span></div>`;
+    else h+=`<div class="ops-line"><span class="mathx">= ${renderTokens(st.steps[shown].before)}</span><span class="ops-note"></span></div>`;
+    box.innerHTML=h;nx.disabled=shown>=st.steps.length;}
+  nx.addEventListener('click',()=>{shown=Math.min(shown+1,st.steps.length);drawO();});
+  $('#ops-all').addEventListener('click',()=>{shown=st.steps.length;drawO();});
+  $('#ops-new').addEventListener('click',()=>{st=genExpr();shown=0;drawO();});drawO();
+  practice($('#pr-whole'),'whole',[{label:'Order of operations',gen:genOrderOps},{label:'Rounding',gen:genRounding},{label:'Place value',gen:genPlaceValue}]);
+}
+function initFrac(){
+  const fn=$('#fb-n'),fd=$('#fb-d');
+  function drawB(){const d=+fd.value;fn.max=3*d;if(+fn.value>3*d)fn.value=3*d;const n=+fn.value;$('#fb-n-o').textContent=n;$('#fb-d-o').textContent=d;
+    const wh=Math.max(1,Math.ceil(n/d));
+    $('#fb-viz').innerHTML=barRows([{label:`${n}/${d}`,d,wholes:wh,cls:shade(n,wh*d,'s-a')}],`${n}/${d} as bars`)+`<div style="height:12px"></div>`+pies(n,d);
+    const g=gcd(n,d)||1;let out=`<span class="big">${F(n,d)}</span>`;
+    if(n>d&&n%d)out+=` = <span class="big">${mixedHTML(n,d)}</span> (mixed number)`;
+    if(n%d===0)out+=` = <span class="big">${n/d}</span> whole${n/d===1?'':'s'}`;
+    if(g>1&&n%d)out+=` = ${F(n/g,d/g)} in simplest form`;
+    out+=` · decimal ${fmt(n/d,3)}`;
+    out+=`<br>The whole is cut into ${d} equal part${d>1?'s':''}, and you have ${n} of them.`;
+    $('#fb-out').innerHTML=out;}
+  fn.addEventListener('input',drawB);fd.addEventListener('input',drawB);drawB();
+  const eb=$('#eq-b'),ea=$('#eq-a'),ek=$('#eq-k');
+  function drawE(){const b=+eb.value;ea.max=b;if(+ea.value>b)ea.value=b;const a=+ea.value,k=+ek.value;$('#eq-a-o').textContent=a;$('#eq-k-o').textContent=k;
+    $('#eq-viz').innerHTML=barRows([{label:`${a}/${b}`,d:b,cls:shade(a,b,'s-a')},{label:`${a*k}/${b*k}`,d:b*k,cls:shade(a*k,b*k,'s-a')}],`${a}/${b} equals ${a*k}/${b*k}`);
+    $('#eq-out').innerHTML=`${F(a,b)} = ${F(`${a} × ${k}`,`${b} × ${k}`)} = <span class="big">${F(a*k,b*k)}</span>. Each piece was cut into ${k}, so there are ${k} times as many pieces, and ${k} times as many are shaded.`;}
+  eb.addEventListener('change',drawE);ea.addEventListener('input',drawE);ek.addEventListener('input',drawE);drawE();
+  const ids=['#ad-a','#ad-b','#ad-c','#ad-d'];
+  function drawA(){const [a,b,c,d]=ids.map(i=>Number($(i).value)),op=$('#ad-op').value,msg=$('#ad-msg');
+    const bad=[a,b,c,d].some(v=>!Number.isInteger(v))||b<1||d<1||b>12||d>12||a<0||c<0||a>b||c>d;
+    if(bad){msg.textContent='Use whole numbers. Bottoms from 1 to 12, and each top no bigger than its bottom.';return;}
+    if(op==='−'&&a*d<c*b){msg.textContent='The second fraction is bigger, so the answer would be negative. Switch them around or choose +.';return;}
+    msg.textContent='';
+    const L=lcm(b,d),A=a*L/b,C=c*L/d,N=op==='+'?A+C:A-C,g=gcd(N,L)||1;
+    $('#ad-viz').innerHTML=addFracVisual(a,b,c,d,op);
+    $('#ad-out').innerHTML=`Common denominator: ${L}. ${F(a,b)} = ${F(A,L)} and ${F(c,d)} = ${F(C,L)}. ${A} ${op} ${C} = ${N}, so the answer is <span class="big">${F(N,L)}</span>${g>1&&N?` = ${F(N/g,L/g)}`:''}${N/g>L/g&&(N/g)%(L/g)?` = ${mixedHTML(N/g,L/g)}`:''}.`;}
+  [...ids,'#ad-op'].forEach(i=>$(i).addEventListener('input',drawA));drawA();
+  practice($('#pr-frac'),'frac',[{label:'Simplify',gen:genSimplify},{label:'Add and subtract',gen:genAddSub},{label:'Multiply',gen:genMultiply},{label:'Mixed numbers',gen:genMixed}]);
+}
+const ONES=['zero','one','two','three','four','five','six','seven','eight','nine','ten','eleven','twelve','thirteen','fourteen','fifteen','sixteen','seventeen','eighteen','nineteen'],TENS=['','','twenty','thirty','forty','fifty','sixty','seventy','eighty','ninety'];
+function words(n){if(n<20)return ONES[n];if(n<100)return TENS[Math.floor(n/10)]+(n%10?'-'+ONES[n%10]:'');return 'one hundred';}
+function initDec(){
+  const hk=$('#hg-k');
+  function drawH(){const k=+hk.value;$('#hg-k-o').textContent=k;const g=gcd(k,100)||100;
+    $('#hg-viz').innerHTML=hundredGrid(k,220)+`<div class="readout" style="flex:1;min-width:220px"><p class="big mathx" style="margin:0">${(k/100).toFixed(2)}</p><p style="margin:4px 0">${words(k)} hundredth${k===1?'':'s'}</p><p style="margin:4px 0">${F(k,100)}${g>1&&k&&k<100?` = ${F(k/g,100/g)}`:''} · ${k}%</p></div>`;
+    $('#hg-out').innerHTML=k===100?'All 100 hundredths make 1 whole.':`${Math.floor(k/10)} full column${Math.floor(k/10)===1?'':'s'} (tenths) and ${k%10} more square${k%10===1?'':'s'} (hundredths). That's why ${(k/100).toFixed(2)} has a ${Math.floor(k/10)} in the tenths place and a ${k%10} in the hundredths place.`;}
+  hk.addEventListener('input',drawH);drawH();
+  const ca=$('#cd-a'),cb=$('#cd-b');
+  function drawC(){const a=ca.value.trim(),b=cb.value.trim(),ok=s=>/^\d{1,4}(\.\d{1,4})?$/.test(s),msg=$('#cd-msg');
+    if(!ok(a)||!ok(b)){msg.textContent='Type decimals like 0.5 or 12.375 (up to 4 digits on each side of the point).';return;}msg.textContent='';
+    const c=compareDec(a,b);$('#cd-viz').innerHTML=decimalColumns([a,b],{diffCol:c.idx});
+    if(c.idx<0){$('#cd-out').innerHTML=`<b>${a}</b> and <b>${b}</b> are equal. Zeros at the end of a decimal don't change its value.`;return;}
+    const longer=a.replace('.','').length>b.replace('.','').length?a:b;
+    $('#cd-out').innerHTML=`<b>${c.larger}</b> is larger. Lined up, the first place that differs is the ${c.place}: ${c.da} versus ${c.db}.${c.larger!==longer&&a.length!==b.length?' More digits does not mean a bigger number.':''}`;}
+  ca.addEventListener('input',drawC);cb.addEventListener('input',drawC);drawC();
+  practice($('#pr-dec'),'dec',[{label:'Add and subtract',gen:genDecAdd},{label:'Compare',gen:genDecCompare},{label:'Fraction to decimal',gen:genFracToDec},{label:'Rounding',gen:genDecRound}]);
+}
+function initPct(){
+  const pp=$('#pc-p'),pw=$('#pc-w');
+  function draw(){const p=+pp.value,W=+pw.value,part=p*W/100;$('#pc-p-o').textContent=p+'%';$('#pc-w-o').textContent=W;
+    $('#pc-viz').innerHTML=percentBar(p,W);
+    $('#pc-grid').innerHTML=hundredGrid(p,160)+`<p class="readout" style="flex:1;min-width:200px;margin:0">${p}% = ${F(p,100)} = ${fmt(p/100)}<br>${p} of the 100 squares are shaded.</p>`;
+    $('#pc-out').innerHTML=`${p}% of ${W} = ${fmt(p/100)} × ${W} = <span class="big">${fmt(part,2)}</span>`;}
+  pp.addEventListener('input',draw);pw.addEventListener('input',draw);
+  $$('#percents .chip[data-p]').forEach(b=>b.addEventListener('click',()=>{pp.value=b.dataset.p;draw();}));draw();
+  practice($('#pr-pct'),'pct',[{label:'Percent of a number',gen:genPctOf},{label:'Sale price',gen:genDiscount},{label:'Find the percent',gen:genFindPct},{label:'Convert',gen:genPctConvert}]);
+}
+function initRatio(){
+  const ta=$('#tp-a'),tb=$('#tp-b'),tk=$('#tp-k');
+  function drawT(){const a=+ta.value,b=+tb.value,k=+tk.value,g=gcd(a,b);$('#tp-a-o').textContent=a;$('#tp-b-o').textContent=b;$('#tp-k-o').textContent=k;
+    $('#tp-viz').innerHTML=tapeSVG(a,b,k);
+    $('#tp-out').innerHTML=`Ratio ${a}:${b}${g>1?` (same as ${a/g}:${b/g})`:''}. Red = ${a} × ${k} = <b>${a*k}</b> cups, blue = ${b} × ${k} = <b>${b*k}</b> cups, total = ${a+b} boxes × ${k} = <b>${(a+b)*k}</b> cups.`;}
+  [ta,tb,tk].forEach(e=>e.addEventListener('input',drawT));drawT();
+  const ctxs=[{tl:'miles',bl:'hours',bs:'hour',t:150,b:3},{tl:'dollars',bl:'pounds',bs:'pound',t:6,b:4},{tl:'pages',bl:'minutes',bs:'minute',t:10,b:4}];
+  const sel=$('#dl-ctx'),dt=$('#dl-t'),db=$('#dl-b');
+  function setCtx(){const c=ctxs[+sel.value];dt.value=c.t;db.value=c.b;$('#dl-t-l').textContent=c.tl[0].toUpperCase()+c.tl.slice(1);$('#dl-b-l').textContent=c.bl[0].toUpperCase()+c.bl.slice(1);drawD();}
+  function drawD(){const c=ctxs[+sel.value],t=Number(dt.value),b=+db.value;$('#dl-b-o').textContent=b;
+    if(!(t>0&&t<=999)){$('#dl-out').textContent='Type an amount from 1 to 999.';return;}
+    const J=Math.max(2,Math.min(4,Math.floor(12/b)));const pairs=[{t:0,b:0}];if(b>1)pairs.push({t:t/b,b:1,hl:true});
+    for(let j=1;j<=J;j++)pairs.push({t:t*j,b:b*j,hl:b===1&&j===1});
+    $('#dl-viz').innerHTML=dnl(pairs,{tl:c.tl,bl:c.bl});
+    $('#dl-out').innerHTML=`${fmt(t,2)} ${c.tl} for ${b} ${b===1?c.bs:c.bl}. Unit rate: ${fmt(t,2)} ÷ ${b} = <span class="big">${c.tl==='dollars'?money(t/b):fmt(t/b,2)}</span> ${c.tl==='dollars'?'':c.tl+' '}per ${c.bs}.`;}
+  sel.addEventListener('change',setCtx);dt.addEventListener('input',drawD);db.addEventListener('input',drawD);drawD();
+  practice($('#pr-ratio'),'ratio',[{label:'Proportions',gen:genProportion},{label:'Unit rates',gen:genUnitRate},{label:'Sharing in a ratio',gen:genRatioShare},{label:'Unit conversions',gen:genConvert}]);
+}
+function initEq(){
+  let a=3,b=4,c=19,stage=0;
+  const viz=$('#bal-viz'),log=$('#bal-log'),sub=$('#bal-sub'),dv=$('#bal-div'),status=$('#bal-status');
+  function draw(){const x=(c-b)/a;
+    if(stage===0)viz.innerHTML=balance({lx:a,lu:b,ru:c});
+    else if(stage===1)viz.innerHTML=balance({lx:a,lu:b,ru:c,flu:b,fru:b});
+    else viz.innerHTML=balance({lx:a,lu:0,ru:c-b,fx:a-1,fru:c-b-x});
+    const lines=[`${coef(a)}${V('x')}${b?` + ${b}`:''} = ${c}`];
+    if(stage>=1&&b)lines.push(`${coef(a)}${V('x')} = ${c-b}`);
+    if(stage===2&&a>1)lines.push(`${V('x')} = ${x}`);
+    log.innerHTML=lines.map(l=>`<li>${l}</li>`).join('');
+    status.innerHTML=stage===2?`Solved: ${V('x')} = ${x}. Check: ${a} × ${x}${b?` + ${b}`:''} = ${c}. ✓`:stage===1&&a>1?`Dashed squares were taken off both sides. Now ${a} blocks of ${V('x')} balance ${c-b} ones.`:'';
+    sub.textContent=`Subtract ${b} from both sides`;sub.disabled=stage!==0||b===0;
+    dv.textContent=`Divide both sides by ${a}`;dv.disabled=!(a>1&&(stage===1||(stage===0&&b===0)));}
+  sub.addEventListener('click',()=>{stage=a===1?2:1;draw();});
+  dv.addEventListener('click',()=>{stage=2;draw();});
+  $('#bal-reset').addEventListener('click',()=>{stage=0;draw();});
+  $('#bal-new').addEventListener('click',()=>{a=rnd(2,5);const x=rnd(1,8);b=rnd(1,12);c=a*x+b;stage=0;$('#bal-a').value=a;$('#bal-b').value=b;$('#bal-c').value=c;$('#bal-msg').textContent='';draw();});
+  $('#bal-load').addEventListener('click',()=>{const A=Number($('#bal-a').value),B=Number($('#bal-b').value),C=Number($('#bal-c').value),msg=$('#bal-msg');
+    if(![A,B,C].every(Number.isInteger)||A<1||A>5||B<0||B>20||C<1||C>60){msg.textContent='Use whole numbers: 1 to 5 x-blocks, 0 to 20 added, and a right side from 1 to 60.';return;}
+    if(C<=B){msg.textContent='The right side needs to be bigger than the number added, so x comes out positive.';return;}
+    if((C-B)%A!==0){msg.textContent=`${C} − ${B} = ${C-B}, which does not split evenly into ${A} groups. Try another right side.`;return;}
+    if(A===1&&B===0){msg.textContent='That equation is already solved. Add a number or use more than one x.';return;}
+    msg.textContent='';a=A;b=B;c=C;stage=0;draw();});
+  draw();
+  practice($('#pr-eq'),'eq',[{label:'One step',gen:genOneStep},{label:'Two steps',gen:genTwoStep},{label:'Word problems',gen:genWord}]);
+}
+
+/* ---------- routing ---------- */
+const TOPICS=['whole-numbers','fractions','decimals','percents','ratios','equations'];
+function route(){const id=TOPICS.includes(location.hash.slice(1))?location.hash.slice(1):TOPICS[0];
+  TOPICS.forEach(t=>$('#'+t).classList.toggle('on',t===id));
+  const nav=$('nav.rail');
+  $$('nav.rail a').forEach(a=>{if(a.getAttribute('href')==='#'+id){a.setAttribute('aria-current','page');if(nav.scrollWidth>nav.clientWidth)nav.scrollLeft=a.offsetLeft-nav.offsetLeft-16;}else a.removeAttribute('aria-current');});}
+window.addEventListener('hashchange',()=>{route();window.scrollTo(0,0);});
+initWhole();initFrac();initDec();initPct();initRatio();initEq();route();
+</script>
+</body>
+</html>
